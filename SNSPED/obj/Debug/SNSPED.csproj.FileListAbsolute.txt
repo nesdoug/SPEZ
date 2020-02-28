@@ -1,0 +1,10 @@
+c:\Users\Doug\Documents\Visual Studio 2015\Projects\SNSPED\SNSPED\obj\Debug\SNSPED.csprojResolveAssemblyReference.cache
+c:\Users\Doug\Documents\Visual Studio 2015\Projects\SNSPED\SNSPED\obj\Debug\SNSPED.Form1.resources
+c:\Users\Doug\Documents\Visual Studio 2015\Projects\SNSPED\SNSPED\obj\Debug\SNSPED.Properties.Resources.resources
+c:\Users\Doug\Documents\Visual Studio 2015\Projects\SNSPED\SNSPED\obj\Debug\SNSPED.csproj.GenerateResource.Cache
+C:\Users\Doug\documents\visual studio 2015\Projects\SNSPED\SNSPED\obj\Debug\SNSPED.Form2.resources
+C:\Users\Doug\documents\visual studio 2015\Projects\SNSPED\SNSPED\bin\Debug\SPEZ.exe.config
+C:\Users\Doug\documents\visual studio 2015\Projects\SNSPED\SNSPED\bin\Debug\SPEZ.exe
+C:\Users\Doug\documents\visual studio 2015\Projects\SNSPED\SNSPED\bin\Debug\SPEZ.pdb
+C:\Users\Doug\documents\visual studio 2015\Projects\SNSPED\SNSPED\obj\Debug\SPEZ.exe
+C:\Users\Doug\documents\visual studio 2015\Projects\SNSPED\SNSPED\obj\Debug\SPEZ.pdb
