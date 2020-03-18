@@ -1,4 +1,4 @@
-SPEZ - SNES Sprite Editor ver 1.0
+SPEZ - SNES Sprite Editor ver 1.1
 Feb 28, 2020
 For SNES game development.
 Freeware by Doug Fraker
@@ -18,6 +18,11 @@ THE SOFTWARE.
 
 version history
 1.0 - initial
+1.1 - save tiles with RLE option
+
+Note, the RLE is a special compression format that I wrote, 
+specifically for SNES maps (but could be used for tiles).
+See unrle.txt (or my SNES projects) for decompression code.
 
 
 Metasprites

@@ -8,3 +8,13 @@ C:\Users\Doug\documents\visual studio 2015\Projects\SNSPED\SNSPED\obj\Release\SN
 C:\Users\Doug\documents\visual studio 2015\Projects\SNSPED\SNSPED\obj\Release\SPEZ.exe
 C:\Users\Doug\documents\visual studio 2015\Projects\SNSPED\SNSPED\obj\Release\SPEZ.pdb
 C:\Users\Doug\documents\visual studio 2015\Projects\SNSPED\SNSPED\obj\Release\SNSPED.csprojResolveAssemblyReference.cache
+C:\Users\dougf\source\repos\SPEZ\SNSPED\bin\Release\SPEZ.exe.config
+C:\Users\dougf\source\repos\SPEZ\SNSPED\bin\Release\SPEZ.exe
+C:\Users\dougf\source\repos\SPEZ\SNSPED\bin\Release\SPEZ.pdb
+C:\Users\dougf\source\repos\SPEZ\SNSPED\obj\Release\SNSPED.csprojAssemblyReference.cache
+C:\Users\dougf\source\repos\SPEZ\SNSPED\obj\Release\SNSPED.Form1.resources
+C:\Users\dougf\source\repos\SPEZ\SNSPED\obj\Release\SNSPED.Form2.resources
+C:\Users\dougf\source\repos\SPEZ\SNSPED\obj\Release\SNSPED.Properties.Resources.resources
+C:\Users\dougf\source\repos\SPEZ\SNSPED\obj\Release\SNSPED.csproj.GenerateResource.cache
+C:\Users\dougf\source\repos\SPEZ\SNSPED\obj\Release\SPEZ.exe
+C:\Users\dougf\source\repos\SPEZ\SNSPED\obj\Release\SPEZ.pdb

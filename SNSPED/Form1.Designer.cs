@@ -249,40 +249,40 @@
             this.toolStripMenuItem2,
             this.clearAllTilesToolStripMenuItem});
             this.tilesToolStripMenuItem.Name = "tilesToolStripMenuItem";
-            this.tilesToolStripMenuItem.Size = new System.Drawing.Size(43, 20);
+            this.tilesToolStripMenuItem.Size = new System.Drawing.Size(42, 20);
             this.tilesToolStripMenuItem.Text = "Tiles";
             // 
             // load4bppToolStripMenuItem
             // 
             this.load4bppToolStripMenuItem.Name = "load4bppToolStripMenuItem";
-            this.load4bppToolStripMenuItem.Size = new System.Drawing.Size(145, 22);
+            this.load4bppToolStripMenuItem.Size = new System.Drawing.Size(144, 22);
             this.load4bppToolStripMenuItem.Text = "Load 4bpp";
             this.load4bppToolStripMenuItem.Click += new System.EventHandler(this.load4bppToolStripMenuItem_Click);
             // 
             // save1SetToolStripMenuItem
             // 
             this.save1SetToolStripMenuItem.Name = "save1SetToolStripMenuItem";
-            this.save1SetToolStripMenuItem.Size = new System.Drawing.Size(145, 22);
+            this.save1SetToolStripMenuItem.Size = new System.Drawing.Size(144, 22);
             this.save1SetToolStripMenuItem.Text = "Save 1 set";
             this.save1SetToolStripMenuItem.Click += new System.EventHandler(this.save1SetToolStripMenuItem_Click);
             // 
             // save2SetsToolStripMenuItem
             // 
             this.save2SetsToolStripMenuItem.Name = "save2SetsToolStripMenuItem";
-            this.save2SetsToolStripMenuItem.Size = new System.Drawing.Size(145, 22);
+            this.save2SetsToolStripMenuItem.Size = new System.Drawing.Size(144, 22);
             this.save2SetsToolStripMenuItem.Text = "Save 2 sets";
             this.save2SetsToolStripMenuItem.Click += new System.EventHandler(this.save2SetsToolStripMenuItem_Click);
             // 
             // toolStripMenuItem2
             // 
             this.toolStripMenuItem2.Name = "toolStripMenuItem2";
-            this.toolStripMenuItem2.Size = new System.Drawing.Size(145, 22);
+            this.toolStripMenuItem2.Size = new System.Drawing.Size(144, 22);
             this.toolStripMenuItem2.Text = " ";
             // 
             // clearAllTilesToolStripMenuItem
             // 
             this.clearAllTilesToolStripMenuItem.Name = "clearAllTilesToolStripMenuItem";
-            this.clearAllTilesToolStripMenuItem.Size = new System.Drawing.Size(145, 22);
+            this.clearAllTilesToolStripMenuItem.Size = new System.Drawing.Size(144, 22);
             this.clearAllTilesToolStripMenuItem.Text = "Clear All Tiles";
             this.clearAllTilesToolStripMenuItem.Click += new System.EventHandler(this.clearAllTilesToolStripMenuItem_Click);
             // 
@@ -412,7 +412,7 @@
             this.set1ToolStripMenuItem,
             this.set2ToolStripMenuItem});
             this.tilesetToolStripMenuItem.Name = "tilesetToolStripMenuItem";
-            this.tilesetToolStripMenuItem.Size = new System.Drawing.Size(53, 20);
+            this.tilesetToolStripMenuItem.Size = new System.Drawing.Size(52, 20);
             this.tilesetToolStripMenuItem.Text = "Tileset";
             // 
             // set1ToolStripMenuItem
@@ -1090,7 +1090,7 @@
             this.MainMenuStrip = this.menuStrip1;
             this.MaximizeBox = false;
             this.Name = "Form1";
-            this.Text = "SPEZ - SNES Sprite Editor ver 1.0";
+            this.Text = "SPEZ - SNES Sprite Editor ver 1.1";
             this.Load += new System.EventHandler(this.Form1_Load);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();

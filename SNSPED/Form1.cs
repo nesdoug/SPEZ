@@ -74,7 +74,8 @@ namespace SNSPED
         const int MAX_X = 64;
         const int MIN_Y = -64;
         const int MAX_Y = 64;
-
+        public static byte[] rle_array = new byte[65536];
+        public static int rle_index, rle_index2, rle_count;
 
         public void update_palette() // use this one
         {

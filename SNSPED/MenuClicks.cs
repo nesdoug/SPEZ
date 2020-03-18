@@ -331,18 +331,22 @@ namespace SNSPED
         { // file / export image
             // export image pic of the current view
             SaveFileDialog sfd = new SaveFileDialog();
-            sfd.Filter = "Images|*.png;*.bmp;*.jpg";
-            
+            sfd.Filter = "PNG|*.png|BMP|*.bmp|JPG|*.jpg|GIF|*.gif";
+
             if (sfd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 string ext = System.IO.Path.GetExtension(sfd.FileName);
                 switch (ext)
                 {
                     case ".jpg":
+                    case ".jpeg":
                         pictureBox1.Image.Save(sfd.FileName, ImageFormat.Jpeg);
                         break;
                     case ".bmp":
                         pictureBox1.Image.Save(sfd.FileName, ImageFormat.Bmp);
+                        break;
+                    case ".gif":
+                        pictureBox1.Image.Save(sfd.FileName, ImageFormat.Gif);
                         break;
                     default:
                         pictureBox1.Image.Save(sfd.FileName, ImageFormat.Png);
@@ -813,6 +817,296 @@ namespace SNSPED
             }
         }
 
+
+
+        // RLE code.
+
+        private void try_RLE(byte[] out_array, byte[] in_array, int in_size)
+        {
+            // globals rle_index, rle_index2, rle_count;
+            byte byte1, byte2, byte3;
+            int old_index = rle_index;
+            rle_count = 0;
+            while (rle_index < in_size)
+            {
+                if (rle_count >= 4095) break; // max count
+                if (in_array[rle_index - 1] == in_array[rle_index])
+                {
+                    rle_count++;
+                    rle_index++;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            if (rle_count > 0) // zero is best here
+            {
+                if (rle_count > 31) // 2 byte header
+                {
+                    byte1 = (byte)(((rle_count >> 8) & 0x0f) + 0xd0);
+                    byte2 = (byte)(rle_count & 0xff);
+                    byte3 = in_array[rle_index - 1];
+                    out_array[rle_index2++] = byte1;
+                    out_array[rle_index2++] = byte2;
+                    out_array[rle_index2++] = byte3;
+                }
+                else // 1 byte header
+                {
+                    byte1 = (byte)((rle_count & 0x3f) + 0x40);
+                    byte2 = in_array[rle_index - 1];
+                    out_array[rle_index2++] = byte1;
+                    out_array[rle_index2++] = byte2;
+                }
+                rle_index++;
+            }
+            else
+            {
+                rle_count = 0;
+                rle_index = old_index;
+            }
+        }
+
+        private void try_Plus(byte[] out_array, byte[] in_array, int in_size)
+        {
+            // globals rle_index, rle_index2, rle_count;
+            byte byte1, byte2, byte3;
+            int old_index = rle_index;
+            int start_value = in_array[rle_index - 1];
+            rle_count = 0;
+            while (rle_index < in_size)
+            {
+                if (rle_count >= 255) break; // max count
+                if (in_array[rle_index - 1] == in_array[rle_index] - 1)
+                {
+                    rle_count++;
+                    rle_index++;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            if (rle_count > 0) // zero is best here.
+            {
+                if (rle_count > 31) // 2 byte header
+                {
+                    byte1 = (byte)(((rle_count >> 8) & 0x0f) + 0xe0);
+                    byte2 = (byte)(rle_count & 0xff);
+                    byte3 = (byte)start_value;
+                    out_array[rle_index2++] = byte1;
+                    out_array[rle_index2++] = byte2;
+                    out_array[rle_index2++] = byte3;
+                }
+                else // 1 byte header
+                {
+                    byte1 = (byte)((rle_count & 0x3f) + 0x80);
+                    byte2 = (byte)start_value;
+                    out_array[rle_index2++] = byte1;
+                    out_array[rle_index2++] = byte2;
+                }
+                rle_index++;
+            }
+            else
+            {
+                rle_count = 0;
+                rle_index = old_index;
+            }
+        }
+
+        private void do_Literal(byte[] out_array, byte[] in_array, int in_size)
+        {
+            // globals rle_index, rle_index2, rle_count;
+            byte byte1, byte2, byte3;
+            int start_index = rle_index - 1;
+            rle_count = 0;
+            rle_index++;
+            while (rle_index < in_size)
+            {
+                if (rle_count >= 4094) break; // max count
+                if ((in_array[rle_index - 2] == in_array[rle_index - 1]) &&
+                    (in_array[rle_index - 1] == in_array[rle_index]))
+                { // found a run > 1
+                    break;
+                }
+                if (((in_array[rle_index - 2] == in_array[rle_index - 1] - 1)) &&
+                    (in_array[rle_index - 1] == in_array[rle_index] - 1))
+                { // found a run > 1
+                    break;
+                }
+                rle_count++;
+                rle_index++;
+            }
+            rle_count--;
+            rle_index--;
+
+            int nearend = in_size - rle_index;
+            if (nearend < 2)
+            { // near the end of the file, dump the rest
+                if (nearend == 1)
+                {
+                    rle_count++;
+                    rle_index++;
+                }
+                rle_count++;
+                rle_index++;
+            }
+
+            if (rle_count >= 0) // always do
+            {
+                int count2 = rle_count + 1;
+
+
+                if (rle_count > 31) // 2 byte header
+                {
+                    byte1 = (byte)(((rle_count >> 8) & 0x0f) + 0xc0);
+                    byte2 = (byte)(rle_count & 0xff);
+                    out_array[rle_index2++] = byte1;
+                    out_array[rle_index2++] = byte2;
+                    for (int i = 0; i < count2; i++)
+                    {
+                        byte3 = in_array[start_index++];
+                        out_array[rle_index2++] = byte3;
+                    }
+
+                }
+                else // 1 byte header
+                {
+                    byte1 = (byte)(rle_count & 0x3f);
+                    out_array[rle_index2++] = byte1;
+                    if (rle_count == 0)
+                    {
+                        byte2 = in_array[start_index];
+                        out_array[rle_index2++] = byte2;
+                    }
+                    else
+                    {
+                        for (int i = 0; i < count2; i++)
+                        {
+                            byte2 = in_array[start_index++];
+                            out_array[rle_index2++] = byte2;
+                        }
+                    }
+
+                }
+
+            }
+
+        }
+
+        private int convert_RLE(byte[] in_array, int in_size)
+        {
+            byte[] in_array_P = new byte[65536];
+            byte[] out_array_P = new byte[65536];
+            byte[] out_array_notP = new byte[65536];
+            byte[] split_array = new byte[32768];
+            byte[] split_array2 = new byte[32768];
+            int P_size, notP_size;
+            // globals rle_index, rle_index2, rle_count;
+            rle_index = 1; // // start at 1, we subtract 1
+            rle_index2 = 0;
+            rle_count = 0;
+
+            if (in_size < 3) return 0; // minimum to avoid errors
+
+
+            // try not Planar first
+
+            while (rle_index < in_size)
+            {
+                try_RLE(out_array_notP, in_array, in_size);
+                if (rle_count == 0)
+                {
+                    try_Plus(out_array_notP, in_array, in_size);
+                    if (rle_count == 0)
+                    {
+                        do_Literal(out_array_notP, in_array, in_size);
+                    }
+                }
+            }
+
+            // do a final literal, if needed
+            if (rle_index == in_size)
+            {
+                out_array_notP[rle_index2++] = 0; // literal of 1
+                out_array_notP[rle_index2++] = in_array[in_size - 1]; // the last byte
+            }
+
+            // put an end of file marker, non-planar
+            out_array_notP[rle_index2++] = 0xf0;
+            notP_size = rle_index2;
+
+
+            // try again, Planar
+            // split the array, low bytes in 1 array, high bytes in another
+            // planar expects even. If odd, this will pad a zero at the end.
+            int half_size = (in_size + 1) / 2;
+            in_size = half_size * 2; // should round up even.
+            for (int i = 0; i < half_size; i++)
+            {
+                int j = i * 2;
+                int k = j + 1;
+                split_array[i] = in_array[j];
+                split_array2[i] = in_array[k];
+            }
+            // combine them into 1 array, so I don't have to modify the code
+            for (int i = 0; i < half_size; i++)
+            {
+                in_array_P[i] = split_array[i];
+                int j = i + half_size;
+                in_array_P[j] = split_array2[i];
+            }
+
+            rle_index = 1;
+            rle_index2 = 0;
+            rle_count = 0;
+            while (rle_index < in_size)
+            {
+                try_RLE(out_array_P, in_array_P, in_size);
+                if (rle_count == 0)
+                {
+                    try_Plus(out_array_P, in_array_P, in_size);
+                    if (rle_count == 0)
+                    {
+                        do_Literal(out_array_P, in_array_P, in_size);
+                    }
+                }
+            }
+            // do a final literal, if needed
+            if (rle_index == in_size)
+            {
+                out_array_P[rle_index2++] = 0; // literal of 1
+                out_array_P[rle_index2++] = in_array_P[in_size - 1]; // the last byte
+            }
+
+            // put an end of file marker, planar
+            out_array_P[rle_index2++] = 0xff;
+            P_size = rle_index2;
+
+            // copy best array to global rle_array[]
+            // and return the length
+            if (notP_size <= P_size)
+            { // not planar is best
+                for (int i = 0; i < notP_size; i++)
+                {
+                    rle_array[i] = out_array_notP[i];
+                }
+                return notP_size;
+            }
+            else
+            { // planar is best
+                for (int i = 0; i < P_size; i++)
+                {
+                    rle_array[i] = out_array_P[i];
+                }
+                return P_size;
+            }
+
+        }
+
+
+
+
         private void save1SetToolStripMenuItem_Click(object sender, EventArgs e)
         { // save just 256 tiles, 1 set
             int[] bit1 = new int[8]; // bit planes
@@ -820,9 +1114,11 @@ namespace SNSPED
             int[] bit3 = new int[8];
             int[] bit4 = new int[8];
             int temp;
+            byte[] out_array = new byte[8192]; // 256 * 32
+            int out_index = 0;
 
             SaveFileDialog saveFileDialog1 = new SaveFileDialog();
-            saveFileDialog1.Filter = "Tileset (*.chr)|*.chr|All files (*.*)|*.*";
+            saveFileDialog1.Filter = "Tileset (*.chr)|*.chr|RLE File (*.rle)|*.rle";
             saveFileDialog1.Title = "Save a 4bpp Tileset";
             saveFileDialog1.ShowDialog();
 
@@ -845,17 +1141,45 @@ namespace SNSPED
                     }
                     for (int j = 0; j < 8; j++)
                     {
-                        fs.WriteByte((byte)bit1[j]);
-                        fs.WriteByte((byte)bit2[j]);
+                        out_array[out_index++] = (byte)(bit1[j]);
+                        out_array[out_index++] = (byte)(bit2[j]);
                     }
                     for (int j = 0; j < 8; j++)
                     {
-                        fs.WriteByte((byte)bit3[j]);
-                        fs.WriteByte((byte)bit4[j]);
+                        out_array[out_index++] = (byte)(bit3[j]);
+                        out_array[out_index++] = (byte)(bit4[j]);
                     }
                 }
-                 
-                fs.Close();
+
+                string ext = System.IO.Path.GetExtension(saveFileDialog1.FileName);
+                if (ext == ".chr")
+                {
+                    for (int j = 0; j < 8192; j++)
+                    {
+                        fs.WriteByte(out_array[j]);
+                    }
+
+                    fs.Close();
+                }
+                else if (ext == ".rle")
+                {
+                    int rle_length = convert_RLE(out_array, 8192);
+                    // global rle_array[] now has our compressed data
+                    for (int i = 0; i < rle_length; i++)
+                    {
+                        fs.WriteByte(rle_array[i]);
+                    }
+
+                    float percent = (float)rle_length / 8192;
+                    fs.Close();
+
+                    MessageBox.Show(String.Format("RLE size is {0}, or {1:P2}", rle_length, percent));
+                }
+                else
+                { // something went wrong.
+                    fs.Close();
+                }
+
             }
         }
 
@@ -866,9 +1190,11 @@ namespace SNSPED
             int[] bit3 = new int[8];
             int[] bit4 = new int[8];
             int temp;
+            byte[] out_array = new byte[16384]; // 256 * 32 * 2
+            int out_index = 0;
 
             SaveFileDialog saveFileDialog1 = new SaveFileDialog();
-            saveFileDialog1.Filter = "Tileset (*.chr)|*.chr|All files (*.*)|*.*";
+            saveFileDialog1.Filter = "Tileset (*.chr)|*.chr|RLE File (*.rle)|*.rle";
             saveFileDialog1.Title = "Save all 4bpp Tilesets";
             saveFileDialog1.ShowDialog();
 
@@ -893,18 +1219,45 @@ namespace SNSPED
                         }
                         for (int j = 0; j < 8; j++)
                         {
-                            fs.WriteByte((byte)bit1[j]);
-                            fs.WriteByte((byte)bit2[j]);
+                            out_array[out_index++] = (byte)(bit1[j]);
+                            out_array[out_index++] = (byte)(bit2[j]);
                         }
                         for (int j = 0; j < 8; j++)
                         {
-                            fs.WriteByte((byte)bit3[j]);
-                            fs.WriteByte((byte)bit4[j]);
+                            out_array[out_index++] = (byte)(bit3[j]);
+                            out_array[out_index++] = (byte)(bit4[j]);
                         }
                     }
                 }
-                
-                fs.Close();
+
+                string ext = System.IO.Path.GetExtension(saveFileDialog1.FileName);
+                if (ext == ".chr")
+                {
+                    for (int j = 0; j < 16384; j++)
+                    {
+                        fs.WriteByte(out_array[j]);
+                    }
+
+                    fs.Close();
+                }
+                else if (ext == ".rle")
+                {
+                    int rle_length = convert_RLE(out_array, 16384);
+                    // global rle_array[] now has our compressed data
+                    for (int i = 0; i < rle_length; i++)
+                    {
+                        fs.WriteByte(rle_array[i]);
+                    }
+
+                    float percent = (float)rle_length / 16384;
+                    fs.Close();
+
+                    MessageBox.Show(String.Format("RLE size is {0}, or {1:P2}", rle_length, percent));
+                }
+                else
+                { // something went wrong.
+                    fs.Close();
+                }
             }
         }
 
@@ -1368,7 +1721,7 @@ namespace SNSPED
 
         private void aboutSNSPEDToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("SPEZ = SNES Sprite Editor, by Doug Fraker, 2020.\n\nVersion 1.0");
+            MessageBox.Show("SPEZ = SNES Sprite Editor, by Doug Fraker, 2020.\n\nVersion 1.1");
         }
 
 
