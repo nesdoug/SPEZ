@@ -1,5 +1,6 @@
-SPEZ - SNES Sprite Editor ver 1.1
-Feb 28, 2020
+SPEZ - SNES Sprite Editor ver 1.2
+May 26, 2020
+.NET 4.5.2 (works with MONO on non-Windows systems)
 For SNES game development.
 Freeware by Doug Fraker
 
@@ -19,6 +20,13 @@ THE SOFTWARE.
 version history
 1.0 - initial
 1.1 - save tiles with RLE option
+1.2 - can use all key commands outside tile edit form
+    - fixed a load session bug (palette of sprite)
+    - sprite list, now can select multi/arbitrary and apply
+      palette and shift and flipping to those selected
+    - fixed a rounding error
+    - added slider bars for color
+
 
 Note, the RLE is a special compression format that I wrote, 
 specifically for SNES maps (but could be used for tiles).
@@ -36,6 +44,10 @@ is the sprites in the selected metasprite.
 Left click on the main window (top left) to add a sprite. Right click and
 drag to move that sprite (or use the arrows to nudge it 1 pixel). Click
 on the sprite list (bottom left) to select a sprite.
+** You can now CTRL click to select/deselect specific sprites
+and Shift-Click to select a block of sprites. Then you can nudge and
+Rt-Click-Drag the selected sprites. However, only select 1 sprite to
+reorder up/down or "delete selected".
 
 There is only 1 priority setting per metasprite, which is
 optional. It doesn't make sense for an object to be on multiple layers

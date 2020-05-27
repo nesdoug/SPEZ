@@ -114,15 +114,21 @@
             this.label18 = new System.Windows.Forms.Label();
             this.textBox7 = new System.Windows.Forms.TextBox();
             this.colorDialog1 = new System.Windows.Forms.ColorDialog();
-            this.checkBox5 = new System.Windows.Forms.CheckBox();
             this.button12 = new System.Windows.Forms.Button();
             this.label19 = new System.Windows.Forms.Label();
             this.checkBox6 = new System.Windows.Forms.CheckBox();
             this.label20 = new System.Windows.Forms.Label();
+            this.button13 = new System.Windows.Forms.Button();
+            this.trackBar1 = new System.Windows.Forms.TrackBar();
+            this.trackBar2 = new System.Windows.Forms.TrackBar();
+            this.trackBar3 = new System.Windows.Forms.TrackBar();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox3)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.trackBar2)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.trackBar3)).BeginInit();
             this.SuspendLayout();
             // 
             // menuStrip1
@@ -249,40 +255,40 @@
             this.toolStripMenuItem2,
             this.clearAllTilesToolStripMenuItem});
             this.tilesToolStripMenuItem.Name = "tilesToolStripMenuItem";
-            this.tilesToolStripMenuItem.Size = new System.Drawing.Size(42, 20);
+            this.tilesToolStripMenuItem.Size = new System.Drawing.Size(43, 20);
             this.tilesToolStripMenuItem.Text = "Tiles";
             // 
             // load4bppToolStripMenuItem
             // 
             this.load4bppToolStripMenuItem.Name = "load4bppToolStripMenuItem";
-            this.load4bppToolStripMenuItem.Size = new System.Drawing.Size(144, 22);
+            this.load4bppToolStripMenuItem.Size = new System.Drawing.Size(145, 22);
             this.load4bppToolStripMenuItem.Text = "Load 4bpp";
             this.load4bppToolStripMenuItem.Click += new System.EventHandler(this.load4bppToolStripMenuItem_Click);
             // 
             // save1SetToolStripMenuItem
             // 
             this.save1SetToolStripMenuItem.Name = "save1SetToolStripMenuItem";
-            this.save1SetToolStripMenuItem.Size = new System.Drawing.Size(144, 22);
+            this.save1SetToolStripMenuItem.Size = new System.Drawing.Size(145, 22);
             this.save1SetToolStripMenuItem.Text = "Save 1 set";
             this.save1SetToolStripMenuItem.Click += new System.EventHandler(this.save1SetToolStripMenuItem_Click);
             // 
             // save2SetsToolStripMenuItem
             // 
             this.save2SetsToolStripMenuItem.Name = "save2SetsToolStripMenuItem";
-            this.save2SetsToolStripMenuItem.Size = new System.Drawing.Size(144, 22);
+            this.save2SetsToolStripMenuItem.Size = new System.Drawing.Size(145, 22);
             this.save2SetsToolStripMenuItem.Text = "Save 2 sets";
             this.save2SetsToolStripMenuItem.Click += new System.EventHandler(this.save2SetsToolStripMenuItem_Click);
             // 
             // toolStripMenuItem2
             // 
             this.toolStripMenuItem2.Name = "toolStripMenuItem2";
-            this.toolStripMenuItem2.Size = new System.Drawing.Size(144, 22);
+            this.toolStripMenuItem2.Size = new System.Drawing.Size(145, 22);
             this.toolStripMenuItem2.Text = " ";
             // 
             // clearAllTilesToolStripMenuItem
             // 
             this.clearAllTilesToolStripMenuItem.Name = "clearAllTilesToolStripMenuItem";
-            this.clearAllTilesToolStripMenuItem.Size = new System.Drawing.Size(144, 22);
+            this.clearAllTilesToolStripMenuItem.Size = new System.Drawing.Size(145, 22);
             this.clearAllTilesToolStripMenuItem.Text = "Clear All Tiles";
             this.clearAllTilesToolStripMenuItem.Click += new System.EventHandler(this.clearAllTilesToolStripMenuItem_Click);
             // 
@@ -412,7 +418,7 @@
             this.set1ToolStripMenuItem,
             this.set2ToolStripMenuItem});
             this.tilesetToolStripMenuItem.Name = "tilesetToolStripMenuItem";
-            this.tilesetToolStripMenuItem.Size = new System.Drawing.Size(52, 20);
+            this.tilesetToolStripMenuItem.Size = new System.Drawing.Size(53, 20);
             this.tilesetToolStripMenuItem.Text = "Tileset";
             // 
             // set1ToolStripMenuItem
@@ -442,8 +448,8 @@
             // aboutSNSPEDToolStripMenuItem
             // 
             this.aboutSNSPEDToolStripMenuItem.Name = "aboutSNSPEDToolStripMenuItem";
-            this.aboutSNSPEDToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.aboutSNSPEDToolStripMenuItem.Text = "About SNSPED";
+            this.aboutSNSPEDToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.aboutSNSPEDToolStripMenuItem.Text = "About SPEZ";
             this.aboutSNSPEDToolStripMenuItem.Click += new System.EventHandler(this.aboutSNSPEDToolStripMenuItem_Click);
             // 
             // pictureBox1
@@ -480,27 +486,27 @@
             // 
             // textBox1
             // 
-            this.textBox1.Location = new System.Drawing.Point(554, 582);
+            this.textBox1.Location = new System.Drawing.Point(593, 584);
             this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(60, 20);
+            this.textBox1.Size = new System.Drawing.Size(48, 20);
             this.textBox1.TabIndex = 4;
             this.textBox1.Text = "0";
             this.textBox1.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBox1_KeyPress);
             // 
             // textBox2
             // 
-            this.textBox2.Location = new System.Drawing.Point(642, 582);
+            this.textBox2.Location = new System.Drawing.Point(668, 584);
             this.textBox2.Name = "textBox2";
-            this.textBox2.Size = new System.Drawing.Size(60, 20);
+            this.textBox2.Size = new System.Drawing.Size(48, 20);
             this.textBox2.TabIndex = 5;
             this.textBox2.Text = "0";
             this.textBox2.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBox2_KeyPress);
             // 
             // textBox3
             // 
-            this.textBox3.Location = new System.Drawing.Point(730, 582);
+            this.textBox3.Location = new System.Drawing.Point(742, 584);
             this.textBox3.Name = "textBox3";
-            this.textBox3.Size = new System.Drawing.Size(60, 20);
+            this.textBox3.Size = new System.Drawing.Size(48, 20);
             this.textBox3.TabIndex = 6;
             this.textBox3.Text = "0";
             this.textBox3.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBox3_KeyPress);
@@ -508,7 +514,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(533, 585);
+            this.label1.Location = new System.Drawing.Point(572, 588);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(15, 13);
             this.label1.TabIndex = 7;
@@ -517,7 +523,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(622, 585);
+            this.label2.Location = new System.Drawing.Point(647, 588);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(15, 13);
             this.label2.TabIndex = 8;
@@ -526,7 +532,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(711, 585);
+            this.label3.Location = new System.Drawing.Point(722, 588);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(14, 13);
             this.label3.TabIndex = 9;
@@ -534,9 +540,9 @@
             // 
             // textBox4
             // 
-            this.textBox4.Location = new System.Drawing.Point(730, 609);
+            this.textBox4.Location = new System.Drawing.Point(519, 584);
             this.textBox4.Name = "textBox4";
-            this.textBox4.Size = new System.Drawing.Size(60, 20);
+            this.textBox4.Size = new System.Drawing.Size(47, 20);
             this.textBox4.TabIndex = 10;
             this.textBox4.Text = "0000";
             this.textBox4.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBox4_KeyPress);
@@ -544,7 +550,7 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(695, 612);
+            this.label4.Location = new System.Drawing.Point(478, 588);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(29, 13);
             this.label4.TabIndex = 11;
@@ -664,9 +670,9 @@
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(554, 609);
+            this.button1.Location = new System.Drawing.Point(476, 610);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(95, 23);
+            this.button1.Size = new System.Drawing.Size(90, 23);
             this.button1.TabIndex = 25;
             this.button1.Text = "Color Picker";
             this.button1.UseVisualStyleBackColor = true;
@@ -928,6 +934,7 @@
             this.listBox2.FormattingEnabled = true;
             this.listBox2.Location = new System.Drawing.Point(12, 454);
             this.listBox2.Name = "listBox2";
+            this.listBox2.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
             this.listBox2.Size = new System.Drawing.Size(320, 160);
             this.listBox2.TabIndex = 42;
             this.listBox2.Click += new System.EventHandler(this.listBox2_Click);
@@ -979,17 +986,6 @@
             this.textBox7.Text = "0";
             this.textBox7.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBox7_KeyPress);
             // 
-            // checkBox5
-            // 
-            this.checkBox5.AutoSize = true;
-            this.checkBox5.Location = new System.Drawing.Point(348, 427);
-            this.checkBox5.Name = "checkBox5";
-            this.checkBox5.Size = new System.Drawing.Size(70, 17);
-            this.checkBox5.TabIndex = 48;
-            this.checkBox5.Text = "Select All";
-            this.checkBox5.UseVisualStyleBackColor = true;
-            this.checkBox5.MouseUp += new System.Windows.Forms.MouseEventHandler(this.checkBox5_MouseUp);
-            // 
             // button12
             // 
             this.button12.Location = new System.Drawing.Point(139, 405);
@@ -1031,16 +1027,65 @@
             this.label20.TabIndex = 53;
             this.label20.Text = "Sprite sizes 8 and 16";
             // 
+            // button13
+            // 
+            this.button13.Location = new System.Drawing.Point(351, 423);
+            this.button13.Name = "button13";
+            this.button13.Size = new System.Drawing.Size(72, 23);
+            this.button13.TabIndex = 54;
+            this.button13.Text = "Select All";
+            this.button13.UseVisualStyleBackColor = true;
+            this.button13.Click += new System.EventHandler(this.button13_Click);
+            // 
+            // trackBar1
+            // 
+            this.trackBar1.LargeChange = 4;
+            this.trackBar1.Location = new System.Drawing.Point(575, 610);
+            this.trackBar1.Maximum = 31;
+            this.trackBar1.Name = "trackBar1";
+            this.trackBar1.Size = new System.Drawing.Size(69, 45);
+            this.trackBar1.TabIndex = 55;
+            this.trackBar1.TickFrequency = 3;
+            this.trackBar1.MouseMove += new System.Windows.Forms.MouseEventHandler(this.trackBar1_MouseMove);
+            this.trackBar1.MouseUp += new System.Windows.Forms.MouseEventHandler(this.trackBar1_MouseUp);
+            // 
+            // trackBar2
+            // 
+            this.trackBar2.LargeChange = 4;
+            this.trackBar2.Location = new System.Drawing.Point(650, 610);
+            this.trackBar2.Maximum = 31;
+            this.trackBar2.Name = "trackBar2";
+            this.trackBar2.Size = new System.Drawing.Size(69, 45);
+            this.trackBar2.TabIndex = 56;
+            this.trackBar2.TickFrequency = 3;
+            this.trackBar2.MouseMove += new System.Windows.Forms.MouseEventHandler(this.trackBar2_MouseMove);
+            this.trackBar2.MouseUp += new System.Windows.Forms.MouseEventHandler(this.trackBar2_MouseUp);
+            // 
+            // trackBar3
+            // 
+            this.trackBar3.LargeChange = 4;
+            this.trackBar3.Location = new System.Drawing.Point(723, 610);
+            this.trackBar3.Maximum = 31;
+            this.trackBar3.Name = "trackBar3";
+            this.trackBar3.Size = new System.Drawing.Size(69, 45);
+            this.trackBar3.TabIndex = 57;
+            this.trackBar3.TickFrequency = 3;
+            this.trackBar3.MouseMove += new System.Windows.Forms.MouseEventHandler(this.trackBar3_MouseMove);
+            this.trackBar3.MouseUp += new System.Windows.Forms.MouseEventHandler(this.trackBar3_MouseUp);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(804, 641);
+            this.ClientSize = new System.Drawing.Size(804, 652);
+            this.Controls.Add(this.trackBar3);
+            this.Controls.Add(this.trackBar2);
+            this.Controls.Add(this.trackBar1);
+            this.Controls.Add(this.button13);
             this.Controls.Add(this.label20);
             this.Controls.Add(this.checkBox6);
             this.Controls.Add(this.label19);
             this.Controls.Add(this.button12);
-            this.Controls.Add(this.checkBox5);
             this.Controls.Add(this.textBox7);
             this.Controls.Add(this.label18);
             this.Controls.Add(this.label17);
@@ -1090,13 +1135,16 @@
             this.MainMenuStrip = this.menuStrip1;
             this.MaximizeBox = false;
             this.Name = "Form1";
-            this.Text = "SPEZ - SNES Sprite Editor ver 1.1";
+            this.Text = "SPEZ - SNES Sprite Editor ver 1.2";
             this.Load += new System.EventHandler(this.Form1_Load);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox3)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.trackBar2)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.trackBar3)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1186,7 +1234,6 @@
         private System.Windows.Forms.Label label18;
         private System.Windows.Forms.TextBox textBox7;
         private System.Windows.Forms.ColorDialog colorDialog1;
-        private System.Windows.Forms.CheckBox checkBox5;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem3;
         private System.Windows.Forms.ToolStripMenuItem clearAllMetaspritesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem2;
@@ -1195,6 +1242,10 @@
         private System.Windows.Forms.Label label19;
         private System.Windows.Forms.CheckBox checkBox6;
         private System.Windows.Forms.Label label20;
+        private System.Windows.Forms.Button button13;
+        private System.Windows.Forms.TrackBar trackBar1;
+        private System.Windows.Forms.TrackBar trackBar2;
+        private System.Windows.Forms.TrackBar trackBar3;
     }
 }
 

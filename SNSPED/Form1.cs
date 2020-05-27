@@ -54,7 +54,6 @@ namespace SNSPED
         public static Bitmap image_meta = new Bitmap(160, 160);
         public static Bitmap image_tiles = new Bitmap(128, 128);
         public static Bitmap image_pal = new Bitmap(256, 256);
-        //public static Bitmap image_map_local = new Bitmap(256, 256);
         public static Bitmap temp_bmp = new Bitmap(256, 256); //double size
         public static Bitmap temp_bmp2 = new Bitmap(320, 320); //double size
         public static Bitmap temp_bmp3 = new Bitmap(256, 256); //double size
@@ -76,6 +75,7 @@ namespace SNSPED
         const int MAX_Y = 64;
         public static byte[] rle_array = new byte[65536];
         public static int rle_index, rle_index2, rle_count;
+        public static int[] sel_array = new int[100]; // remember which items selected
 
         public void update_palette() // use this one
         {
@@ -134,7 +134,6 @@ namespace SNSPED
         public static void draw_palettes() // sub routine of update palette
         {
             int count = 0;
-            //Bitmap temp_bm = new Bitmap(256, 256); // very small, will zoom it later
             SolidBrush temp_brush = new SolidBrush(Color.White);
             
             for (int i = 0; i < 256; i += 32) //each row
@@ -182,6 +181,7 @@ namespace SNSPED
             string str = textBox1.Text;
             int value = check_num(str);
             textBox1.Text = value.ToString();
+            trackBar1.Value = value / 8;
 
             int selection = get_selection();
             Palettes.pal_r[selection] = (byte)value;
@@ -189,12 +189,14 @@ namespace SNSPED
             str = textBox2.Text;
             value = check_num(str);
             textBox2.Text = value.ToString();
+            trackBar2.Value = value / 8;
 
             Palettes.pal_g[selection] = (byte)value;
 
             str = textBox3.Text;
             value = check_num(str);
             textBox3.Text = value.ToString();
+            trackBar3.Value = value / 8;
 
             Palettes.pal_b[selection] = (byte)value;
         }
@@ -230,8 +232,7 @@ namespace SNSPED
 
             if (mouseEventArgs.Button == MouseButtons.Right)
             {
-                if (listBox2.SelectedIndex < 0) return;
-                int save_index = listBox2.SelectedIndex;
+                if (listBox2.SelectedItems.Count < 1) return;
 
                 if ((r_start_x >= 0) && (r_start_y >= 0)) // valid starts
                 {
@@ -261,61 +262,22 @@ namespace SNSPED
                         {
                             int meta_x, meta_y;
                             selected_spr = listBox2.SelectedIndex;
-                            if (checkBox5.Checked == false) // select all
-                            { // move one sprite
-                                meta_x = MetaspriteArray[selected_meta].rel_x[selected_spr];
+
+                            foreach (int index in listBox2.SelectedIndices)
+                            {
+                                meta_x = MetaspriteArray[selected_meta].rel_x[index];
                                 meta_x = meta_x + delta_x;
                                 if (meta_x < -64) meta_x = -64;
                                 if (meta_x > 64) meta_x = 64;
-                                MetaspriteArray[selected_meta].rel_x[selected_spr] = meta_x;
+                                MetaspriteArray[selected_meta].rel_x[index] = meta_x;
 
-                                meta_y = MetaspriteArray[selected_meta].rel_y[selected_spr];
+                                meta_y = MetaspriteArray[selected_meta].rel_y[index];
                                 meta_y = meta_y + delta_y;
                                 if (meta_y < -64) meta_y = -64;
                                 if (meta_y > 64) meta_y = 64;
-                                MetaspriteArray[selected_meta].rel_y[selected_spr] = meta_y;
+                                MetaspriteArray[selected_meta].rel_y[index] = meta_y;
                             }
-                            else
-                            { // move all sprites in metasprite
-                                int num_sprites = listBox2.Items.Count;
-                                if (num_sprites < 1) return;
-                                // test each one first
-                                int test = 0;
-                                for (int i = 0; i < num_sprites; i++)
-                                {
-                                    meta_x = MetaspriteArray[selected_meta].rel_x[i];
-                                    meta_x = meta_x + delta_x;
-                                    if (meta_x < -64) test++;
-                                    if (meta_x > 64) test++;
-
-                                    meta_y = MetaspriteArray[selected_meta].rel_y[i];
-                                    meta_y = meta_y + delta_y;
-                                    if (meta_y < -64) test++;
-                                    if (meta_y > 64) test++;
-                                    if (test > 0) break;
-                                }
-
-                                if(test == 0) // safe to move.
-                                {
-                                    for (int i = 0; i < num_sprites; i++)
-                                    {
-                                        meta_x = MetaspriteArray[selected_meta].rel_x[i];
-                                        meta_x = meta_x + delta_x;
-                                        if (meta_x < -64) meta_x = -64;
-                                        if (meta_x > 64) meta_x = 64;
-                                        MetaspriteArray[selected_meta].rel_x[i] = meta_x;
-                                        
-                                        meta_y = MetaspriteArray[selected_meta].rel_y[i];
-                                        meta_y = meta_y + delta_y;
-                                        if (meta_y < -64) meta_y = -64;
-                                        if (meta_y > 64) meta_y = 64;
-                                        MetaspriteArray[selected_meta].rel_y[i] = meta_y;
-                                        
-                                    }
-                                }
-
-                                
-                            }
+                            
                             // update start position as we go
                             r_start_x = r_start_x + (delta_x * 2);
                             if (r_start_x < 0) r_start_x = 0;
@@ -327,7 +289,6 @@ namespace SNSPED
 
                             update_metatile_image();
                             rebuild_spr_list();
-                            listBox2.SelectedIndex = save_index;
                         }
                     }
                 }
@@ -418,8 +379,10 @@ namespace SNSPED
             str = str + "   V=" + MetaspriteArray[selected_meta].v_flip[offset].ToString();
             str = str + "   Sz=" + MetaspriteArray[selected_meta].size[offset].ToString();
 
+            listBox2.ClearSelected();
             listBox2.Items.Add(str);
-            listBox2.SelectedIndex = offset;
+            
+            listBox2.SelectedIndex = count - 1;
             listBox2.Refresh();
 
             str = "";
@@ -548,9 +511,17 @@ namespace SNSPED
                 update_palette();
 
                 //update the boxes
-                textBox1.Text = Palettes.pal_r[selection].ToString();
-                textBox2.Text = Palettes.pal_g[selection].ToString();
-                textBox3.Text = Palettes.pal_b[selection].ToString();
+                int red = Palettes.pal_r[selection];
+                textBox1.Text = red.ToString();
+                trackBar1.Value = red / 8;
+
+                int green = Palettes.pal_g[selection];
+                textBox2.Text = green.ToString();
+                trackBar2.Value = green / 8;
+
+                int blue = Palettes.pal_b[selection];
+                textBox3.Text = blue.ToString();
+                trackBar3.Value = blue / 8;
                 update_box4();
             }
 
@@ -595,7 +566,6 @@ namespace SNSPED
         { // palette changer for a tile
             if (MetaspriteArray[selected_meta].sprite_count == 0) return;
             if (listBox2.SelectedIndex < 0) return;
-            selected_spr = listBox2.SelectedIndex;
 
             if (e.KeyChar == (char)Keys.Return)
             {
@@ -610,23 +580,16 @@ namespace SNSPED
                 {
                     int temp_val = 0;
                     int.TryParse(str, out temp_val);
-                    if(checkBox5.Checked == false) // select all
-                    { // 1 sprite
-                        MetaspriteArray[selected_meta].palette[selected_spr] = temp_val;
-                    }
-                    else
-                    { // all sprites
-                        int num_sprites = listBox2.Items.Count;
-                        if (num_sprites < 1) return;
-                        for (int i = 0; i < num_sprites; i++)
-                        {
-                            MetaspriteArray[selected_meta].palette[i] = temp_val;
-                        }
+                    if (listBox2.SelectedItems.Count < 1) return;
+
+                    foreach (int index in listBox2.SelectedIndices)
+                    { 
+                        MetaspriteArray[selected_meta].palette[index] = temp_val;
+                        
                     }
                 }
 
                 rebuild_spr_list();
-                listBox2.SelectedIndex = selected_spr;
                 update_metatile_image();
                 e.Handled = true; // prevent ding on return press
             }
@@ -637,48 +600,36 @@ namespace SNSPED
         { // h flip
             //flip the selected tile, unless select all, then flip all.
             if (MetaspriteArray[selected_meta].sprite_count == 0) return;
-            if (listBox2.SelectedIndex < 0) return;
-            selected_spr = listBox2.SelectedIndex;
-
-            if(checkBox5.Checked == false) // select all
+            if (listBox2.SelectedItems.Count < 1) return;
+            
+            int x_least, x_most, temp1, temp2, temp3;
+            // get smallest and largest
+            x_least = 64;
+            x_most = -64;
+            foreach (int index in listBox2.SelectedIndices)
             {
-                MetaspriteArray[selected_meta].h_flip[selected_spr] = 
-                    MetaspriteArray[selected_meta].h_flip[selected_spr] ^ 1; //xor
-                rebuild_one_item();
+                temp1 = MetaspriteArray[selected_meta].rel_x[index];
+                if (temp1 < x_least) x_least = temp1;
+                if (temp1 > x_most) x_most = temp1;
             }
-            else
+            
+            foreach (int index in listBox2.SelectedIndices)
             {
-                int x_least, x_most, num_sprites, temp1, temp2;
-                // get smallest
-                num_sprites = listBox2.Items.Count;
-                x_least = 64;
-                x_most = -64;
-                for (int i = 0; i < num_sprites; i++)
-                {
-                    temp1 = MetaspriteArray[selected_meta].rel_x[i];
-                    if (temp1 < x_least) x_least = temp1;
-                    if (temp1 > x_most) x_most = temp1;
-                }
-                int x_mid = (x_most + x_least) / 2;
-
-                for (int i = 0; i < num_sprites; i++)
-                {
                     
-                    MetaspriteArray[selected_meta].h_flip[i] =
-                    MetaspriteArray[selected_meta].h_flip[i] ^ 1; //xor
+                MetaspriteArray[selected_meta].h_flip[index] =
+                MetaspriteArray[selected_meta].h_flip[index] ^ 1; //xor
 
-                    temp1 = x_mid - MetaspriteArray[selected_meta].rel_x[i];
-                    temp2 = temp1 * 2;
-                    MetaspriteArray[selected_meta].rel_x[i] = 
-                        MetaspriteArray[selected_meta].rel_x[i] + temp2;
-                }
-                rebuild_spr_list();
-                listBox2.SelectedIndex = selected_spr;
-                string str = "";
-                if (selected_spr < 10) str = "0";
-                str = str + selected_spr.ToString(); //hex
-                label19.Text = str;
+                temp3 = (x_most - MetaspriteArray[selected_meta].rel_x[index]) + x_least;
+
+                if (temp3 < -64) temp3 = -64; // minimum allowed
+                if (temp3 > 64) temp3 = 64; // max allowed
+                MetaspriteArray[selected_meta].rel_x[index] = temp3;
             }
+            rebuild_spr_list();
+            string str = "";
+            if (selected_spr < 10) str = "0";
+            str = str + selected_spr.ToString(); //hex
+            label19.Text = str;
             
             update_metatile_image();
         }
@@ -687,50 +638,36 @@ namespace SNSPED
         { // v flip
             //flip the selected tile, unless select all, then flip all.
             if (MetaspriteArray[selected_meta].sprite_count == 0) return;
-            if (listBox2.SelectedIndex < 0) return;
-            selected_spr = listBox2.SelectedIndex;
-
-            if (checkBox5.Checked == false) // select all
+            if (listBox2.SelectedItems.Count < 1) return;
+            
+            int y_least, y_most, temp1, temp2, temp3;
+            // get smallest and largest
+            y_least = 64;
+            y_most = -64;
+            foreach (int index in listBox2.SelectedIndices)
             {
-                MetaspriteArray[selected_meta].v_flip[selected_spr] =
-                    MetaspriteArray[selected_meta].v_flip[selected_spr] ^ 1; //xor
-                rebuild_one_item();
+                temp1 = MetaspriteArray[selected_meta].rel_y[index];
+                if (temp1 < y_least) y_least = temp1;
+                if (temp1 > y_most) y_most = temp1;
             }
-            else
+            
+            foreach (int index in listBox2.SelectedIndices)
             {
-                int y_least, y_most, num_sprites, temp1, temp2;
-                // get smallest
-                num_sprites = listBox2.Items.Count;
-                y_least = 64;
-                y_most = -64;
-                for (int i = 0; i < num_sprites; i++)
-                {
-                    temp1 = MetaspriteArray[selected_meta].rel_y[i];
-                    if (temp1 < y_least) y_least = temp1;
-                    if (temp1 > y_most) y_most = temp1;
-                }
-                int y_mid = (y_most + y_least) / 2;
+                MetaspriteArray[selected_meta].v_flip[index] =
+                MetaspriteArray[selected_meta].v_flip[index] ^ 1; //xor
 
+                temp3 = (y_most - MetaspriteArray[selected_meta].rel_y[index]) + y_least;
 
-                for (int i = 0; i < MAX_SPRITE; i++)
-                {
-                    if (i >= listBox2.Items.Count) break;
-                    MetaspriteArray[selected_meta].v_flip[i] =
-                    MetaspriteArray[selected_meta].v_flip[i] ^ 1; //xor
-
-                    temp1 = y_mid - MetaspriteArray[selected_meta].rel_y[i];
-                    temp2 = temp1 * 2;
-                    MetaspriteArray[selected_meta].rel_y[i] =
-                        MetaspriteArray[selected_meta].rel_y[i] + temp2;
-                }
-                rebuild_spr_list();
-                listBox2.SelectedIndex = selected_spr;
-                string str = "";
-                if (selected_spr < 10) str = "0";
-                str = str + selected_spr.ToString(); //hex
-                label19.Text = str;
+                if (temp3 < -64) temp3 = -64;
+                if (temp3 > 64) temp3 = 64; // max allowed
+                MetaspriteArray[selected_meta].rel_y[index] = temp3;
             }
-
+            rebuild_spr_list();
+            string str = "";
+            if (selected_spr < 10) str = "0";
+            str = str + selected_spr.ToString(); //hex
+            label19.Text = str;
+            
             rebuild_one_item();
             update_metatile_image();
         }
@@ -739,31 +676,19 @@ namespace SNSPED
         { // resize
             //resize the selected tile, unless select all, then resize all.
             if (MetaspriteArray[selected_meta].sprite_count == 0) return;
-            if (listBox2.SelectedIndex < 0) return;
-            selected_spr = listBox2.SelectedIndex;
-
-            if (checkBox5.Checked == false) // select all
+            if (listBox2.SelectedItems.Count < 1) return;
+            
+            foreach (int index in listBox2.SelectedIndices)
             {
-                MetaspriteArray[selected_meta].size[selected_spr] =
-                    MetaspriteArray[selected_meta].size[selected_spr] ^ 1; //xor
-                rebuild_one_item();
+                MetaspriteArray[selected_meta].size[index] =
+                MetaspriteArray[selected_meta].size[index] ^ 1; //xor
             }
-            else
-            {
-                for (int i = 0; i < MAX_SPRITE; i++)
-                {
-                    if (i >= listBox2.Items.Count) break;
-                    MetaspriteArray[selected_meta].size[i] =
-                    MetaspriteArray[selected_meta].size[i] ^ 1; //xor
-                }
-                rebuild_spr_list();
-                listBox2.SelectedIndex = selected_spr;
-                string str = "";
-                if (selected_spr < 10) str = "0";
-                str = str + selected_spr.ToString(); //hex
-                label19.Text = str;
-            }
-
+            rebuild_spr_list();
+            string str = "";
+            if (selected_spr < 10) str = "0";
+            str = str + selected_spr.ToString(); //hex
+            label19.Text = str;
+            
             rebuild_one_item();
             update_metatile_image();
         }
@@ -772,104 +697,77 @@ namespace SNSPED
 
 
 
-
         private void button4_Click(object sender, EventArgs e)
         { // nudge left
             if (MetaspriteArray[selected_meta].sprite_count == 0) return;
-            if (listBox2.SelectedIndex < 0) return;
-            selected_spr = listBox2.SelectedIndex;
+            if (listBox2.SelectedItems.Count < 1) return;
             int temp_x;
-            if (checkBox5.Checked == false) // select all
+            
+            int num_sprites = listBox2.Items.Count;
+            if (num_sprites < 1) return;
+            int test = 0;
+            
+            foreach (int index in listBox2.SelectedIndices)
             {
-                temp_x = MetaspriteArray[selected_meta].rel_x[selected_spr];
+                temp_x = MetaspriteArray[selected_meta].rel_x[index];
                 temp_x--;
-                if (temp_x < MIN_X) temp_x = MIN_X;
-                MetaspriteArray[selected_meta].rel_x[selected_spr] = temp_x;
-
-                rebuild_one_item();
+                if (temp_x < MIN_X) test++;
+                if (test > 0) break;
             }
-            else // multiple
+            if(test == 0) // safe
             {
-                int num_sprites = listBox2.Items.Count;
-                if (num_sprites < 1) return;
-                int test = 0;
-                // test each, make sure in range
-                for (int i = 0; i < num_sprites; i++)
+                foreach (int index in listBox2.SelectedIndices)
                 {
-                    temp_x = MetaspriteArray[selected_meta].rel_x[i];
+                    temp_x = MetaspriteArray[selected_meta].rel_x[index];
                     temp_x--;
-                    if (temp_x < MIN_X) test++;
-                    if (test > 0) break;
+                    if (temp_x < MIN_X) temp_x = MIN_X;
+                    MetaspriteArray[selected_meta].rel_x[index] = temp_x;
                 }
-                if(test == 0) // safe
-                {
-                    for (int i = 0; i < num_sprites; i++)
-                    {
-                        temp_x = MetaspriteArray[selected_meta].rel_x[i];
-                        temp_x--;
-                        if (temp_x < MIN_X) temp_x = MIN_X;
-                        MetaspriteArray[selected_meta].rel_x[i] = temp_x;
-                    }
-                }
-                
-                rebuild_spr_list();
-                listBox2.SelectedIndex = selected_spr;
-                string str = "";
-                if (selected_spr < 10) str = "0";
-                str = str + selected_spr.ToString(); //hex
-                label19.Text = str;
             }
-
+                
+            rebuild_spr_list();
+            string str = "";
+            if (selected_spr < 10) str = "0";
+            str = str + selected_spr.ToString(); //hex
+            label19.Text = str;
+            
             update_metatile_image();
         }
 
         private void button5_Click(object sender, EventArgs e)
         { // nudge right
             if (MetaspriteArray[selected_meta].sprite_count == 0) return;
-            if (listBox2.SelectedIndex < 0) return;
-            selected_spr = listBox2.SelectedIndex;
+            if (listBox2.SelectedItems.Count < 1) return;
             int temp_x;
-            if (checkBox5.Checked == false) // select all
+            
+            int num_sprites = listBox2.Items.Count;
+            if (num_sprites < 1) return;
+            int test = 0;
+            // test each, make sure in range
+            foreach (int index in listBox2.SelectedIndices)
             {
-                temp_x = MetaspriteArray[selected_meta].rel_x[selected_spr];
+                temp_x = MetaspriteArray[selected_meta].rel_x[index];
                 temp_x++;
-                if (temp_x > MAX_X) temp_x = MAX_X;
-                MetaspriteArray[selected_meta].rel_x[selected_spr] = temp_x;
-
-                rebuild_one_item();
+                if (temp_x > MAX_X) test++;
+                if (test > 0) break;
             }
-            else
+            if (test == 0) // safe
             {
-                int num_sprites = listBox2.Items.Count;
-                if (num_sprites < 1) return;
-                int test = 0;
-                // test each, make sure in range
-                for (int i = 0; i < num_sprites; i++)
+                foreach (int index in listBox2.SelectedIndices)
                 {
-                    temp_x = MetaspriteArray[selected_meta].rel_x[i];
+                    temp_x = MetaspriteArray[selected_meta].rel_x[index];
                     temp_x++;
-                    if (temp_x > MAX_X) test++;
-                    if (test > 0) break;
+                    if (temp_x > MAX_X) temp_x = MAX_X;
+                    MetaspriteArray[selected_meta].rel_x[index] = temp_x;
                 }
-                if (test == 0) // safe
-                {
-                    for (int i = 0; i < num_sprites; i++)
-                    {
-                        temp_x = MetaspriteArray[selected_meta].rel_x[i];
-                        temp_x++;
-                        if (temp_x > MAX_X) temp_x = MAX_X;
-                        MetaspriteArray[selected_meta].rel_x[i] = temp_x;
-                    }
-                }
-
-
-                rebuild_spr_list();
-                listBox2.SelectedIndex = selected_spr;
-                string str = "";
-                if (selected_spr < 10) str = "0";
-                str = str + selected_spr.ToString(); //hex
-                label19.Text = str;
             }
+
+
+            rebuild_spr_list();
+            string str = "";
+            if (selected_spr < 10) str = "0";
+            str = str + selected_spr.ToString(); //hex
+            label19.Text = str;
             
             update_metatile_image();
         }
@@ -877,99 +775,73 @@ namespace SNSPED
         private void button6_Click(object sender, EventArgs e)
         { // nudge up
             if (MetaspriteArray[selected_meta].sprite_count == 0) return;
-            if (listBox2.SelectedIndex < 0) return;
-            selected_spr = listBox2.SelectedIndex;
+            if (listBox2.SelectedItems.Count < 1) return;
             int temp_y;
-            if (checkBox5.Checked == false) // select all
+            
+            int num_sprites = listBox2.Items.Count;
+            if (num_sprites < 1) return;
+            int test = 0;
+            // test each, make sure in range
+            foreach (int index in listBox2.SelectedIndices)
             {
-                temp_y = MetaspriteArray[selected_meta].rel_y[selected_spr];
+                temp_y = MetaspriteArray[selected_meta].rel_y[index];
                 temp_y--;
-                if (temp_y < MIN_Y) temp_y = MIN_Y;
-                MetaspriteArray[selected_meta].rel_y[selected_spr] = temp_y;
-
-                rebuild_one_item();
+                if (temp_y < MIN_Y) test++;
+                if (test > 0) break;
             }
-            else
+            if (test == 0) // safe
             {
-                int num_sprites = listBox2.Items.Count;
-                if (num_sprites < 1) return;
-                int test = 0;
-                // test each, make sure in range
-                for (int i = 0; i < num_sprites; i++)
+                foreach (int index in listBox2.SelectedIndices)
                 {
-                    temp_y = MetaspriteArray[selected_meta].rel_y[i];
+                    temp_y = MetaspriteArray[selected_meta].rel_y[index];
                     temp_y--;
-                    if (temp_y < MIN_Y) test++;
-                    if (test > 0) break;
+                    if (temp_y < MIN_Y) temp_y = MIN_Y;
+                    MetaspriteArray[selected_meta].rel_y[index] = temp_y;
                 }
-                if (test == 0) // safe
-                {
-                    for (int i = 0; i < num_sprites; i++)
-                    {
-                        temp_y = MetaspriteArray[selected_meta].rel_y[i];
-                        temp_y--;
-                        if (temp_y < MIN_Y) temp_y = MIN_Y;
-                        MetaspriteArray[selected_meta].rel_y[i] = temp_y;
-                    }
-                }
-
-                rebuild_spr_list();
-                listBox2.SelectedIndex = selected_spr;
-                string str = "";
-                if (selected_spr < 10) str = "0";
-                str = str + selected_spr.ToString(); //hex
-                label19.Text = str;
             }
 
+            rebuild_spr_list();
+            string str = "";
+            if (selected_spr < 10) str = "0";
+            str = str + selected_spr.ToString(); //hex
+            label19.Text = str;
+            
             update_metatile_image();
         }
 
         private void button7_Click(object sender, EventArgs e)
         { // nudge down
             if (MetaspriteArray[selected_meta].sprite_count == 0) return;
-            if (listBox2.SelectedIndex < 0) return;
-            selected_spr = listBox2.SelectedIndex;
+            if (listBox2.SelectedItems.Count < 1) return;
             int temp_y;
-            if (checkBox5.Checked == false) // select all
+            
+            int num_sprites = listBox2.Items.Count;
+            if (num_sprites < 1) return;
+            int test = 0;
+            // test each, make sure in range
+            foreach (int index in listBox2.SelectedIndices)
             {
-                temp_y = MetaspriteArray[selected_meta].rel_y[selected_spr];
+                temp_y = MetaspriteArray[selected_meta].rel_y[index];
                 temp_y++;
-                if (temp_y > MAX_Y) temp_y = MAX_Y;
-                MetaspriteArray[selected_meta].rel_y[selected_spr] = temp_y;
-
-                rebuild_one_item();
+                if (temp_y > MAX_Y) test++;
+                if (test > 0) break;
             }
-            else
+            if (test == 0) // safe
             {
-                int num_sprites = listBox2.Items.Count;
-                if (num_sprites < 1) return;
-                int test = 0;
-                // test each, make sure in range
-                for (int i = 0; i < num_sprites; i++)
+                foreach (int index in listBox2.SelectedIndices)
                 {
-                    temp_y = MetaspriteArray[selected_meta].rel_y[i];
+                    temp_y = MetaspriteArray[selected_meta].rel_y[index];
                     temp_y++;
-                    if (temp_y > MAX_Y) test++;
-                    if (test > 0) break;
+                    if (temp_y > MAX_Y) temp_y = MAX_Y;
+                    MetaspriteArray[selected_meta].rel_y[index] = temp_y;
                 }
-                if (test == 0) // safe
-                {
-                    for (int i = 0; i < num_sprites; i++)
-                    {
-                        temp_y = MetaspriteArray[selected_meta].rel_y[i];
-                        temp_y++;
-                        if (temp_y > MAX_Y) temp_y = MAX_Y;
-                        MetaspriteArray[selected_meta].rel_y[i] = temp_y;
-                    }
-                }
-
-                rebuild_spr_list();
-                listBox2.SelectedIndex = selected_spr;
-                string str = "";
-                if (selected_spr < 10) str = "0";
-                str = str + selected_spr.ToString(); //hex
-                label19.Text = str;
             }
+
+            rebuild_spr_list();
+            string str = "";
+            if (selected_spr < 10) str = "0";
+            str = str + selected_spr.ToString(); //hex
+            label19.Text = str;
             
             update_metatile_image();
         }
@@ -1002,9 +874,15 @@ namespace SNSPED
         private void button8_Click(object sender, EventArgs e)
         { // reorder up
             if (MetaspriteArray[selected_meta].sprite_count == 0) return;
-            if (listBox2.SelectedIndex < 1) return;
+            if (listBox2.SelectedItems.Count < 1) return;
+            if (listBox2.SelectedItems.Count > 1) // don't allow multi
+            {
+                MessageBox.Show("Select only one sprite.");
+                return;
+            }
             int temp1, temp2, temp3, temp4, temp5, temp6, temp7, temp8;
             int index2 = listBox2.SelectedIndex;
+            if (index2 < 1) return;
             int index1 = index2 - 1;
 
             //swap 2 sprites
@@ -1036,6 +914,7 @@ namespace SNSPED
             MetaspriteArray[selected_meta].size[index2] = temp8;
 
             rebuild_one_item();
+            listBox2.ClearSelected();
             listBox2.SelectedIndex = index1;
             rebuild_one_item();
             update_metatile_image();
@@ -1044,7 +923,13 @@ namespace SNSPED
         private void button9_Click(object sender, EventArgs e)
         { // reorder down
             if (MetaspriteArray[selected_meta].sprite_count == 0) return;
-            if (listBox2.SelectedIndex < 0) return;
+            //if (listBox2.SelectedIndex < 0) return;
+            if (listBox2.SelectedItems.Count < 1) return;
+            if (listBox2.SelectedItems.Count > 1) // don't allow multi
+            {
+                MessageBox.Show("Select only one sprite.");
+                return;
+            }
             int temp1, temp2, temp3, temp4, temp5, temp6, temp7, temp8;
             int index1 = listBox2.SelectedIndex;
             int index2 = index1 + 1;
@@ -1079,6 +964,7 @@ namespace SNSPED
             MetaspriteArray[selected_meta].size[index2] = temp8;
 
             rebuild_one_item();
+            listBox2.ClearSelected();
             listBox2.SelectedIndex = index2;
             rebuild_one_item();
             update_metatile_image();
@@ -1273,22 +1159,35 @@ namespace SNSPED
         { // key presses on main form go here
             int selection = pal_x + (pal_y * 16);
 
-            if (e.KeyCode == Keys.C)
+            if (e.KeyCode == Keys.Left)
             {
-                Tiles.tile_copy();
+                e.IsInputKey = true;
+                Tiles.shift_left();
             }
-            else if (e.KeyCode == Keys.P)
+            else if (e.KeyCode == Keys.Up)
             {
-                Tiles.tile_paste();
+                e.IsInputKey = true;
+                Tiles.shift_up();
+            }
+            else if (e.KeyCode == Keys.Right)
+            {
+                e.IsInputKey = true;
+                Tiles.shift_right();
+            }
+            else if (e.KeyCode == Keys.Down)
+            {
+                e.IsInputKey = true;
+                Tiles.shift_down();
+            }
+
+            else if (e.KeyCode == Keys.NumPad2)
+            {
+                if (tile_y < 15) tile_y++;
+                tile_num = (tile_y * 16) + tile_x;
             }
             else if (e.KeyCode == Keys.NumPad4)
             {
                 if (tile_x > 0) tile_x--;
-                tile_num = (tile_y * 16) + tile_x;
-            }
-            else if (e.KeyCode == Keys.NumPad8)
-            {
-                if (tile_y > 0) tile_y--;
                 tile_num = (tile_y * 16) + tile_x;
             }
             else if (e.KeyCode == Keys.NumPad6)
@@ -1296,10 +1195,42 @@ namespace SNSPED
                 if (tile_x < 15) tile_x++;
                 tile_num = (tile_y * 16) + tile_x;
             }
-            else if (e.KeyCode == Keys.NumPad2)
+            else if (e.KeyCode == Keys.NumPad8)
             {
-                if (tile_y < 15) tile_y++;
+                if (tile_y > 0) tile_y--;
                 tile_num = (tile_y * 16) + tile_x;
+            }
+            else if (e.KeyCode == Keys.H)
+            {
+                Tiles.tile_h_flip();
+            }
+            else if (e.KeyCode == Keys.V)
+            {
+                Tiles.tile_v_flip();
+            }
+            else if (e.KeyCode == Keys.R)
+            {
+                Tiles.tile_rot_cw();
+            }
+            else if (e.KeyCode == Keys.L)
+            {
+                Tiles.tile_rot_ccw();
+            }
+            else if (e.KeyCode == Keys.Delete)
+            {
+                Tiles.tile_delete();
+            }
+            else if (e.KeyCode == Keys.C)
+            {
+                Tiles.tile_copy();
+            }
+            else if (e.KeyCode == Keys.P)
+            {
+                Tiles.tile_paste();
+            }
+            else if (e.KeyCode == Keys.F)
+            {
+                Tiles.tile_fill();
             }
             else if (e.KeyCode == Keys.Q)
             { // copy selected color
@@ -1313,9 +1244,17 @@ namespace SNSPED
                 Palettes.pal_g[selection] = (byte)pal_g_copy;
                 Palettes.pal_b[selection] = (byte)pal_b_copy;
                 update_palette();
-                textBox1.Text = Palettes.pal_r[selection].ToString();
-                textBox2.Text = Palettes.pal_g[selection].ToString();
-                textBox3.Text = Palettes.pal_b[selection].ToString();
+                int red = Palettes.pal_r[selection];
+                textBox1.Text = red.ToString();
+                trackBar1.Value = red / 8;
+
+                int green = Palettes.pal_g[selection];
+                textBox2.Text = green.ToString();
+                trackBar2.Value = green / 8;
+
+                int blue = Palettes.pal_b[selection];
+                textBox3.Text = blue.ToString();
+                trackBar3.Value = blue / 8;
                 update_box4();
             }
             else if (e.KeyCode == Keys.E)
@@ -1324,13 +1263,23 @@ namespace SNSPED
                 Palettes.pal_g[selection] = 0;
                 Palettes.pal_b[selection] = 0;
                 update_palette();
-                textBox1.Text = Palettes.pal_r[selection].ToString();
-                textBox2.Text = Palettes.pal_g[selection].ToString();
-                textBox3.Text = Palettes.pal_b[selection].ToString();
+                int red = Palettes.pal_r[selection];
+                textBox1.Text = red.ToString();
+                trackBar1.Value = red / 8;
+
+                int green = Palettes.pal_g[selection];
+                textBox2.Text = green.ToString();
+                trackBar2.Value = green / 8;
+
+                int blue = Palettes.pal_b[selection];
+                textBox3.Text = blue.ToString();
+                trackBar3.Value = blue / 8;
                 update_box4();
             }
 
             common_update2();
+            // prevent change in focus
+            label5.Focus();
         }
 
         
@@ -1404,12 +1353,6 @@ namespace SNSPED
             listBox2.Items[selected_spr] = str;
         }
 
-        private void checkBox5_MouseUp(object sender, MouseEventArgs e)
-        { // select all
-            //was checkBox5_CheckedChanged
-
-            update_metatile_image();
-        }
 
         
 
@@ -1417,7 +1360,12 @@ namespace SNSPED
         { // delete selected tile
             if ((MetaspriteArray[selected_meta].sprite_count < 1) ||
                (listBox2.Items.Count < 1)) return;
-            if(MetaspriteArray[selected_meta].sprite_count == 1)
+            if (listBox2.SelectedItems.Count > 1) // don't allow multi
+            {
+                MessageBox.Show("Select only one sprite.");
+                return;
+            }
+            if (MetaspriteArray[selected_meta].sprite_count == 1)
             {
                 // only 1 item, just delete all
                 MetaspriteArray[selected_meta].sprite_count = 0;
@@ -1448,7 +1396,8 @@ namespace SNSPED
                 // decrease the sprite count
                 MetaspriteArray[selected_meta].sprite_count = MetaspriteArray[selected_meta].sprite_count - 1;
             }
-            
+
+            listBox2.ClearSelected(); // fix crash
             rebuild_spr_list();
             
             if(selected_spr < listBox2.Items.Count)
@@ -1512,6 +1461,7 @@ namespace SNSPED
             
             textBox7.Text = MetaspriteArray[selected_meta].priority.ToString();
 
+            listBox2.Items.Clear(); // fix crash in rebuild.
             rebuild_spr_list();
             if(listBox2.Items.Count >= 1)
             {
@@ -1524,6 +1474,14 @@ namespace SNSPED
 
         private void rebuild_spr_list()
         {
+            for(int i = 0; i < 100; i++)
+            {
+                sel_array[i] = 0;
+            }
+            foreach (int index in listBox2.SelectedIndices)
+            {
+                sel_array[index] = 1;
+            }
             listBox2.Items.Clear();
             int count = MetaspriteArray[selected_meta].sprite_count;
             int tile_sel;
@@ -1548,6 +1506,14 @@ namespace SNSPED
                 }
                 listBox2.Refresh();
 
+                for (int i = 0; i < 100; i++)
+                {
+                    if(sel_array[i] == 1)
+                    {
+                        listBox2.SetSelected(i,true);
+                    }
+                }
+
                 // set the check boxes to the top item
                 textBox5.Text = MetaspriteArray[selected_meta].palette[0].ToString();
             }
@@ -1570,6 +1536,80 @@ namespace SNSPED
             update_metatile_image();
         }
 
+        private void button13_Click(object sender, EventArgs e)
+        {
+            int how_many = listBox2.Items.Count;
+            if (how_many < 1) return;
+            for(int i = 0; i < how_many; i++)
+            {
+                listBox2.SetSelected(i, true);
+            }
+            rebuild_spr_list();
+            
+        }
+
+        private void trackBar1_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                int val = trackBar1.Value * 8;
+                textBox1.Text = val.ToString();
+
+                update_rgb();
+                update_box4();
+
+                update_palette();
+
+                common_update2();
+            }
+        }
+
+        private void trackBar2_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                int val = trackBar2.Value * 8;
+                textBox2.Text = val.ToString();
+
+                update_rgb();
+                update_box4();
+
+                update_palette();
+
+                common_update2();
+            }
+        }
+
+        private void trackBar3_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                int val = trackBar3.Value * 8;
+                textBox3.Text = val.ToString();
+
+                update_rgb();
+                update_box4();
+
+                update_palette();
+
+                common_update2();
+            }
+        }
+
+        private void trackBar1_MouseUp(object sender, MouseEventArgs e)
+        {
+            label5.Focus();
+        }
+
+        private void trackBar2_MouseUp(object sender, MouseEventArgs e)
+        {
+            label5.Focus();
+        }
+
+        private void trackBar3_MouseUp(object sender, MouseEventArgs e)
+        {
+            label5.Focus();
+        }
 
         public void update_tile_image() // redraw the visible tileset
         {
@@ -1641,7 +1681,6 @@ namespace SNSPED
             Color Fred2 = Color.White;
             if (add_them > 384) Fred2 = Color.Black;
 
-            // fill black, todo, maybe an option to load a bg image ??
             for (int i = 0; i < 160; i++)
             {
                 for(int j = 0; j < 160; j++)

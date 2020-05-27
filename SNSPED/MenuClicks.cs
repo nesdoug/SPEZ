@@ -68,9 +68,17 @@ namespace SNSPED
 
                         // update the numbers in the boxes
                         temp = pal_x + (pal_y * 16);
-                        textBox1.Text = Palettes.pal_r[temp].ToString();
-                        textBox2.Text = Palettes.pal_g[temp].ToString();
-                        textBox3.Text = Palettes.pal_b[temp].ToString();
+                        int red = Palettes.pal_r[temp];
+                        textBox1.Text = red.ToString();
+                        trackBar1.Value = red / 8;
+
+                        int green = Palettes.pal_g[temp];
+                        textBox2.Text = green.ToString();
+                        trackBar2.Value = green / 8;
+
+                        int blue = Palettes.pal_b[temp];
+                        textBox3.Text = blue.ToString();
+                        trackBar3.Value = blue / 8;
                         update_box4();
 
                         //load tiles, 2 x 256 x 4bpp
@@ -125,7 +133,7 @@ namespace SNSPED
                                 temp = big_array[offset++];
 
                                 MetaspriteArray[i].set[j] = temp & 0x01;
-                                MetaspriteArray[i].palette[j] = (temp >> 1) & 0x03;
+                                MetaspriteArray[i].palette[j] = (temp >> 1) & 0x07;
                                 MetaspriteArray[i].h_flip[j] = (temp >> 6) & 0x01;
                                 MetaspriteArray[i].v_flip[j] = (temp >> 7) & 0x01;
                                 MetaspriteArray[i].size[j] = (temp >> 4) & 0x01; // non standard
@@ -1313,9 +1321,18 @@ namespace SNSPED
 
                     // update the numbers in the boxes
                     temp = pal_x + (pal_y * 16);
-                    textBox1.Text = Palettes.pal_r[temp].ToString();
-                    textBox2.Text = Palettes.pal_g[temp].ToString();
-                    textBox3.Text = Palettes.pal_b[temp].ToString();
+
+                    int red = Palettes.pal_r[temp];
+                    textBox1.Text = red.ToString();
+                    trackBar1.Value = red / 8;
+
+                    int green = Palettes.pal_g[temp];
+                    textBox2.Text = green.ToString();
+                    trackBar2.Value = green / 8;
+
+                    int blue = Palettes.pal_b[temp];
+                    textBox3.Text = blue.ToString();
+                    trackBar3.Value = blue / 8;
 
                     update_box4();
                     update_palette();
@@ -1372,9 +1389,18 @@ namespace SNSPED
 
                     // update the numbers in the boxes
                     temp = pal_x + (pal_y * 16);
-                    textBox1.Text = Palettes.pal_r[temp].ToString();
-                    textBox2.Text = Palettes.pal_g[temp].ToString();
-                    textBox3.Text = Palettes.pal_b[temp].ToString();
+
+                    int red = Palettes.pal_r[temp];
+                    textBox1.Text = red.ToString();
+                    trackBar1.Value = red / 8;
+
+                    int green = Palettes.pal_g[temp];
+                    textBox2.Text = green.ToString();
+                    trackBar2.Value = green / 8;
+
+                    int blue = Palettes.pal_b[temp];
+                    textBox3.Text = blue.ToString();
+                    trackBar3.Value = blue / 8;
 
                     update_box4();
                     update_palette();
@@ -1427,9 +1453,18 @@ namespace SNSPED
 
                     // update the numbers in the boxes
                     temp = pal_x + (pal_y * 16);
-                    textBox1.Text = Palettes.pal_r[temp].ToString();
-                    textBox2.Text = Palettes.pal_g[temp].ToString();
-                    textBox3.Text = Palettes.pal_b[temp].ToString();
+
+                    int red = Palettes.pal_r[temp];
+                    textBox1.Text = red.ToString();
+                    trackBar1.Value = red / 8;
+
+                    int green = Palettes.pal_g[temp];
+                    textBox2.Text = green.ToString();
+                    trackBar2.Value = green / 8;
+
+                    int blue = Palettes.pal_b[temp];
+                    textBox3.Text = blue.ToString();
+                    trackBar3.Value = blue / 8;
 
                     update_box4();
                     update_palette();
@@ -1721,7 +1756,7 @@ namespace SNSPED
 
         private void aboutSNSPEDToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("SPEZ = SNES Sprite Editor, by Doug Fraker, 2020.\n\nVersion 1.1");
+            MessageBox.Show("SPEZ = SNES Sprite Editor, by Doug Fraker, 2020.\n\nVersion 1.2");
         }
 
 
