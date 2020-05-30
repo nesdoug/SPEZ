@@ -76,13 +76,12 @@ Tilesets
 
 Left/Right click to open an editing box.
 Numberpad 2,4,6,8 to move to adjacent tile.
-C - copy, P - paste.
+C - copy
+P - paste.
 
-(these only work if focus is not on one of the text boxes on the form)
-*note - 2bpp SNES tilesets are NOT like NES. They are like Gameboy, GB,
-so, if you use YY-CHR, set the tile mode to 2bpp GB. You can easily
-convert NES to SNES in YY-CHR by loading NES, copy all the visible tiles,
-switch to 2bpp GB, then paste the tiles again.
+Note - you can save time by L-clicking in the sprite
+window and quickly changing tiles with the numberpad
+2,4,6,8 buttons. (assuming their tiles are adjacent).
 
 
 
@@ -98,8 +97,8 @@ V - flip vertical (notice the symmetric shape of the letter E)
 R - rotate clockwise
 L - rotate counter clockwise
 Delete - fills with color 0 (transparent)
-C - copy, P - paste.
-(! these only work if this box is clicked/active !)
+C - copy
+P - paste.
 
 
 
@@ -173,7 +172,7 @@ name (20 chars) x 100 = (2000 total)
 
 ///////////////////////////////////////////////
 TODO-
--3bpp load / save / edit mode
+-none
 ///////////////////////////////////////////////
 
 
