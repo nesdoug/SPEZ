@@ -200,6 +200,7 @@ namespace SNSPED
                 
                 update_palette(); 
                 common_update2();
+                disable_map_click = 1;
             }
         } // end of OPEN SESSION
 
@@ -441,6 +442,7 @@ namespace SNSPED
                 fs.Close();
 
                 update_metatile_image();
+                disable_map_click = 1;
             }
 
         } // end of load metasprite
@@ -822,6 +824,7 @@ namespace SNSPED
                 fs.Close();
 
                 common_update2();
+                disable_map_click = 1;
             }
         }
 
@@ -1345,6 +1348,7 @@ namespace SNSPED
                 }
 
                 fs.Close();
+                disable_map_click = 1;
             }
         } // END OF LOAD FULL PALETTE
 
@@ -1413,6 +1417,7 @@ namespace SNSPED
                 }
 
                 fs.Close();
+                disable_map_click = 1;
             }
         } // END LOAD 32 byte palette
 
@@ -1477,6 +1482,7 @@ namespace SNSPED
                 }
 
                 fs.Close();
+                disable_map_click = 1;
             }
         } // END PALETTE LOAD FROM RGB
 
@@ -1723,8 +1729,7 @@ namespace SNSPED
         }
 
 
-
-        private void set1ToolStripMenuItem_Click(object sender, EventArgs e)
+        public void set1_change()
         {
             set1ToolStripMenuItem.Checked = true;
             set2ToolStripMenuItem.Checked = false;
@@ -1739,7 +1744,12 @@ namespace SNSPED
             common_update2();
         }
 
-        private void set2ToolStripMenuItem_Click(object sender, EventArgs e)
+        private void set1ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            set1_change();
+        }
+
+        public void set2_change()
         {
             set1ToolStripMenuItem.Checked = false;
             set2ToolStripMenuItem.Checked = true;
@@ -1754,9 +1764,14 @@ namespace SNSPED
             common_update2();
         }
 
+        private void set2ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            set2_change();
+        }
+
         private void aboutSNSPEDToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("SPEZ = SNES Sprite Editor, by Doug Fraker, 2020.\n\nVersion 1.2");
+            MessageBox.Show("SPEZ = SNES Sprite Editor, by Doug Fraker, 2020.\n\nnesdoug.com");
         }
 
 

@@ -168,6 +168,8 @@ namespace SNSPED
 
         private void Form2_KeyDown(object sender, KeyEventArgs e)
         {
+            Form1 f = (this.Owner as Form1);
+
             if (e.KeyCode == Keys.Left)
             {
                 Tiles.shift_left();
@@ -251,6 +253,14 @@ namespace SNSPED
             {
                 Tiles.tile_fill();
                 common_update();
+            }
+            else if (e.KeyCode == Keys.D1) // number key 1
+            {
+                f.set1_change(); // change the tileset
+            }
+            else if (e.KeyCode == Keys.D2)
+            {
+                f.set2_change();
             }
 
         }

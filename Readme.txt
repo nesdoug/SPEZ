@@ -1,5 +1,5 @@
-SPEZ - SNES Sprite Editor ver 1.2
-May 26, 2020
+SPEZ - SNES Sprite Editor ver 1.3
+June 11, 2020
 .NET 4.5.2 (works with MONO on non-Windows systems)
 For SNES game development.
 Freeware by Doug Fraker
@@ -16,6 +16,12 @@ version history
       palette and shift and flipping to those selected
     - fixed a rounding error
     - added slider bars for color
+1.3 - fixed tilemap image zoom code that cut of 1/2
+      a pixel at the top and left, that effected exported
+      pictures also.
+    - fixed bug, double clicking in a dialogue box caused
+      a mouse event on the tilemap below it.
+    - added hotkeys to change the tileset-number keys 1 and 2
 
 
 Note, the RLE is a special compression format that I wrote, 

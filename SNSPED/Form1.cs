@@ -76,6 +76,8 @@ namespace SNSPED
         public static byte[] rle_array = new byte[65536];
         public static int rle_index, rle_index2, rle_count;
         public static int[] sel_array = new int[100]; // remember which items selected
+        public static int disable_map_click;
+
 
         public void update_palette() // use this one
         {
@@ -206,6 +208,7 @@ namespace SNSPED
 
         private void pictureBox1_MouseDown(object sender, MouseEventArgs e)
         {
+            disable_map_click = 0;
             var mouseEventArgs = e as MouseEventArgs;
             int pixel_x = -1;
             int pixel_y = -1;
@@ -300,6 +303,12 @@ namespace SNSPED
 
         private void pictureBox1_Click(object sender, EventArgs e)
         { // main metatile editor, top left
+            if(disable_map_click == 1)
+            {
+                disable_map_click = 0;
+                return;
+            }
+
             // left click = drop a tile, right = shift selected tile
             // click the tile in the tile editor to change which selected
             int meta_x, meta_y, meta_x2, meta_y2, count, offset;
@@ -1277,6 +1286,16 @@ namespace SNSPED
                 update_box4();
             }
 
+            else if (e.KeyCode == Keys.D1) // number key 1
+            {
+                set1_change(); // change the tileset
+            }
+            else if (e.KeyCode == Keys.D2)
+            {
+                set2_change();
+            }
+
+
             common_update2();
             // prevent change in focus
             label5.Focus();
@@ -1644,6 +1663,7 @@ namespace SNSPED
             using (Graphics g = Graphics.FromImage(temp_bmp))
             {
                 g.InterpolationMode = InterpolationMode.NearestNeighbor;
+                g.PixelOffsetMode = PixelOffsetMode.Half; // fix bug, missing half a pixel on top and left
                 g.DrawImage(image_tiles, 0, 0, 256, 256);
             } // standard resize of bmp was blurry, this makes it sharp
 

@@ -448,7 +448,7 @@
             // aboutSNSPEDToolStripMenuItem
             // 
             this.aboutSNSPEDToolStripMenuItem.Name = "aboutSNSPEDToolStripMenuItem";
-            this.aboutSNSPEDToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.aboutSNSPEDToolStripMenuItem.Size = new System.Drawing.Size(136, 22);
             this.aboutSNSPEDToolStripMenuItem.Text = "About SPEZ";
             this.aboutSNSPEDToolStripMenuItem.Click += new System.EventHandler(this.aboutSNSPEDToolStripMenuItem_Click);
             // 
@@ -1135,7 +1135,7 @@
             this.MainMenuStrip = this.menuStrip1;
             this.MaximizeBox = false;
             this.Name = "Form1";
-            this.Text = "SPEZ - SNES Sprite Editor ver 1.2";
+            this.Text = "SPEZ - SNES Sprite Editor ver 1.3";
             this.Load += new System.EventHandler(this.Form1_Load);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
