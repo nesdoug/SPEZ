@@ -147,6 +147,7 @@ namespace SNSPED
                 int color = Tiles.Tile_Arrays[index];
                 Form1.pal_x = color;
                 f.update_palette();
+                f.rebuild_pal_boxes();
             }
 
 
@@ -172,21 +173,25 @@ namespace SNSPED
 
             if (e.KeyCode == Keys.Left)
             {
+                f.Checkpoint();
                 Tiles.shift_left();
                 common_update();
             }
             else if (e.KeyCode == Keys.Up)
             {
+                f.Checkpoint();
                 Tiles.shift_up();
                 common_update();
             }
             else if (e.KeyCode == Keys.Right)
             {
+                f.Checkpoint();
                 Tiles.shift_right();
                 common_update();
             }
             else if (e.KeyCode == Keys.Down)
             {
+                f.Checkpoint();
                 Tiles.shift_down();
                 common_update();
             }
@@ -216,26 +221,31 @@ namespace SNSPED
             }
             else if (e.KeyCode == Keys.H)
             {
+                f.Checkpoint();
                 Tiles.tile_h_flip();
                 common_update();
             }
             else if (e.KeyCode == Keys.V)
             {
+                f.Checkpoint();
                 Tiles.tile_v_flip();
                 common_update();
             }
             else if (e.KeyCode == Keys.R)
             {
+                f.Checkpoint();
                 Tiles.tile_rot_cw();
                 common_update();
             }
             else if (e.KeyCode == Keys.L)
             {
+                f.Checkpoint();
                 Tiles.tile_rot_ccw();
                 common_update();
             }
             else if (e.KeyCode == Keys.Delete)
             {
+                f.Checkpoint();
                 Tiles.tile_delete();
                 common_update();
             }
@@ -246,11 +256,13 @@ namespace SNSPED
             }
             else if (e.KeyCode == Keys.P)
             {
+                f.Checkpoint();
                 Tiles.tile_paste();
                 common_update();
             }
             else if (e.KeyCode == Keys.F)
             {
+                f.Checkpoint();
                 Tiles.tile_fill();
                 common_update();
             }
@@ -262,13 +274,27 @@ namespace SNSPED
             {
                 f.set2_change();
             }
+            else if (e.KeyCode == Keys.Z)
+            {
+                f.Do_Undo();
+            }
 
         }
+
 
         private void pictureBox1_MouseUp(object sender, MouseEventArgs e)
         {
             Form1 f = (this.Owner as Form1);
             f.update_metatile_image();
+        }
+
+        private void pictureBox1_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                Form1 f = (this.Owner as Form1);
+                f.Checkpoint();
+            }
         }
     }
 }

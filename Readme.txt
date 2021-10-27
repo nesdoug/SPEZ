@@ -1,10 +1,14 @@
-SPEZ - SNES Sprite Editor ver 1.3
-June 11, 2020
+SPEZ - SNES Sprite Editor ver 2.0
+Oct 27, 2021
 .NET 4.5.2 (works with MONO on non-Windows systems)
 For SNES game development.
 Freeware by Doug Fraker
 
 The MIT License (MIT)
+
+
+This app is for generating, editing, and arranging 
+SNES tiles for use as Sprites.
 
 
 version history
@@ -16,17 +20,43 @@ version history
       palette and shift and flipping to those selected
     - fixed a rounding error
     - added slider bars for color
-1.3 - fixed tilemap image zoom code that cut of 1/2
+1.3 - fixed tilemap image zoom code that cut off 1/2
       a pixel at the top and left, that effected exported
       pictures also.
     - fixed bug, double clicking in a dialogue box caused
       a mouse event on the tilemap below it.
     - added hotkeys to change the tileset-number keys 1 and 2
+1.4 - fix, rt click on tile editor wasn't updating 
+      palette values
+2.0 - Import palette and CHR from an image (128x128)
+    - undo function
+    - several minor UI changes
+    - changed icon
+    - save tiles in range
+    - load tiles to selected tile
+
 
 
 Note, the RLE is a special compression format that I wrote, 
 specifically for SNES maps (but could be used for tiles).
 See unrle.txt (or my SNES projects) for decompression code.
+
+
+Undo
+----
+Type Z or choose Edit/Undo
+Only edits to the tiles and the current metasprite 
+can be undone. Some things may not be reverted on undo.
+
+
+Import Image
+------------
+Resize the image to 128x128 or less. Import an the palette
+first, then import the CHR / tiles.
+There are some options, default has...
+-use the top left pixel as the transparent color.
+unchecked, it will organize the colors by darkness and
+use the darkest color as the transparent color.
 
 
 Metasprites

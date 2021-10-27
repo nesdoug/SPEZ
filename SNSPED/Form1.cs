@@ -21,10 +21,22 @@ namespace SNSPED
             InitializeComponent();
         }
         static Form2 newChild = null;
+        static Form3 newChild3 = null;
+        static Form4 newChild4 = null;
 
         public static void close_it()
         {
             newChild = null;
+        }
+
+        public static void close_it3()
+        {
+            newChild3 = null;
+        }
+
+        public static void close_it4()
+        {
+            newChild4 = null;
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -35,6 +47,7 @@ namespace SNSPED
                 MetaspriteArray[i] = new Metasprites();
                 MetaspriteArray[i].name = "Metasprite " + i.ToString();
             }
+            
             listBox1.SelectedIndex = 0;
             cancel_index_change = false;
             spr_size_mode = SIZES_8_16;
@@ -50,6 +63,7 @@ namespace SNSPED
         public const int MAX_METASP = 100;
         public const int MAX_SPRITE = 100;
         Metasprites[] MetaspriteArray = new Metasprites[MAX_METASP];
+        Metasprites UndoMetasprite = new Metasprites();
 
         public static Bitmap image_meta = new Bitmap(160, 160);
         public static Bitmap image_tiles = new Bitmap(128, 128);
@@ -57,6 +71,7 @@ namespace SNSPED
         public static Bitmap temp_bmp = new Bitmap(256, 256); //double size
         public static Bitmap temp_bmp2 = new Bitmap(320, 320); //double size
         public static Bitmap temp_bmp3 = new Bitmap(256, 256); //double size
+        public static Bitmap cool_bmp = new Bitmap(128, 128); //import
         public static int pal_x, pal_y, tile_x, tile_y, tile_num, tile_set;
         public static int pal_r_copy, pal_g_copy, pal_b_copy;
         public static int spr_size_mode;
@@ -77,6 +92,118 @@ namespace SNSPED
         public static int rle_index, rle_index2, rle_count;
         public static int[] sel_array = new int[100]; // remember which items selected
         public static int disable_map_click;
+
+        public static int dither_factor;
+        public static double dither_db = 0.0;
+        public static int dither_adjust = 0;
+        public static bool f3_cb1 = true;
+
+        public static int[] R_Array = new int[65536];
+        public static int[] G_Array = new int[65536];
+        public static int[] B_Array = new int[65536];
+        public static int[] Count_Array = new int[65536]; // count each color
+        public static int[] SixteenColorIndexes = new int[16];
+        public static int[] SixteenColorsAdded = new int[16];
+        public static int color_count; // how many total different colors
+        public static int r_val, g_val, b_val, diff_val;
+        public static int c_offset, c_offset2;
+        public static int image_width, image_height;
+        public static int[] needy_chr_array = new int[65536];
+
+        public static bool undo_ready = false;
+        
+
+
+        public readonly int[,] BAYER_MATRIX =
+        {
+            { 0,48,12,60,3,51,15,63 },
+            { 32,16,44,28,35,19,47,31 },
+            { 8,56,4,52,11,59,7,55 },
+            { 40,24,36,20,43,27,39,23 },
+            { 2,50,14,62,1,49,13,61 },
+            { 34,18,46,30,33,17,45,29 },
+            { 10,58,6,54,9,57,5,53 },
+            { 42,26,38,22,41,25,37,21 }
+        }; // 1/64 times this
+
+
+
+        public void Checkpoint()
+        {
+            // backup for undo function
+            undo_ready = true;
+
+            // save current metasprite
+            int count = MetaspriteArray[selected_meta].sprite_count;
+
+            for (int i = 0; i < count; ++i)
+            { // copy current meta 
+                UndoMetasprite.tile[i] = MetaspriteArray[selected_meta].tile[i];
+                UndoMetasprite.set[i] = MetaspriteArray[selected_meta].set[i];
+                UndoMetasprite.rel_x[i] = MetaspriteArray[selected_meta].rel_x[i];
+                UndoMetasprite.rel_y[i] = MetaspriteArray[selected_meta].rel_y[i];
+                UndoMetasprite.palette[i] = MetaspriteArray[selected_meta].palette[i];
+                UndoMetasprite.h_flip[i] = MetaspriteArray[selected_meta].h_flip[i];
+                UndoMetasprite.v_flip[i] = MetaspriteArray[selected_meta].v_flip[i];
+                UndoMetasprite.size[i] = MetaspriteArray[selected_meta].size[i];
+            }
+            UndoMetasprite.priority = MetaspriteArray[selected_meta].priority;
+            UndoMetasprite.sprite_count = MetaspriteArray[selected_meta].sprite_count;
+            UndoMetasprite.name = MetaspriteArray[selected_meta].name;
+
+            for (int i = 0; i < 32768; ++i)
+            { // copy tilesets
+                Tiles.Undo_Tile_Array[i] = Tiles.Tile_Arrays[i];
+            }
+        }
+
+        public void Do_Undo()
+        {
+            if (undo_ready == false) return;
+
+            int count = UndoMetasprite.sprite_count;
+
+            for (int i = 0; i < count; ++i)
+            { // copy current meta 
+                MetaspriteArray[selected_meta].tile[i] = UndoMetasprite.tile[i];
+                MetaspriteArray[selected_meta].set[i] = UndoMetasprite.set[i];
+                MetaspriteArray[selected_meta].rel_x[i] = UndoMetasprite.rel_x[i];
+                MetaspriteArray[selected_meta].rel_y[i] = UndoMetasprite.rel_y[i];
+                MetaspriteArray[selected_meta].palette[i] = UndoMetasprite.palette[i];
+                MetaspriteArray[selected_meta].h_flip[i] = UndoMetasprite.h_flip[i];
+                MetaspriteArray[selected_meta].v_flip[i] = UndoMetasprite.v_flip[i];
+                MetaspriteArray[selected_meta].size[i] = UndoMetasprite.size[i];
+                
+            }
+            MetaspriteArray[selected_meta].priority = UndoMetasprite.priority;
+            MetaspriteArray[selected_meta].sprite_count = UndoMetasprite.sprite_count;
+            MetaspriteArray[selected_meta].name = UndoMetasprite.name;
+            textBox6.Text = UndoMetasprite.name;
+            listBox1.Items[listBox1.SelectedIndex] = UndoMetasprite.name;
+            textBox7.Text = UndoMetasprite.priority.ToString();
+            // skip textBox5, should be done by rebuild.. below
+
+            for (int i = 0; i < 32768; ++i)
+            { // copy tilesets
+                Tiles.Tile_Arrays[i] = Tiles.Undo_Tile_Array[i];
+            }
+
+            // checkboxes and listboxes
+            rebuild_spr_list();
+            string str = "";
+            if (selected_spr < 10) str = "0";
+            str = str + selected_spr.ToString(); //hex
+            if (selected_spr < 0) str = "00";
+            label19.Text = str;
+
+            common_update2();
+            // update the tile edit box and
+            //update_tile_image();
+            //update_metatile_image();
+
+            undo_ready = false;
+        }
+
 
 
         public void update_palette() // use this one
@@ -215,6 +342,7 @@ namespace SNSPED
 
             if (mouseEventArgs.Button == MouseButtons.Right)
             {
+                
                 pixel_x = mouseEventArgs.X;
                 pixel_y = mouseEventArgs.Y;
 
@@ -225,6 +353,8 @@ namespace SNSPED
             }
             r_start_x = pixel_x;
             r_start_y = pixel_y;
+
+            Checkpoint();
         }
 
         private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
@@ -317,6 +447,7 @@ namespace SNSPED
             
             var mouseEventArgs = e as MouseEventArgs;
             if (mouseEventArgs.Button == MouseButtons.Right) return;
+
             if (mouseEventArgs != null)
             {
                 meta_x = mouseEventArgs.X;
@@ -433,6 +564,7 @@ namespace SNSPED
             }
             else
             {
+                // remember to put the form location as "manual"
                 newChild = new Form2();
                 newChild.Owner = this;
                 int xx = Screen.PrimaryScreen.Bounds.Width;
@@ -456,7 +588,8 @@ namespace SNSPED
         public void tile_show_num() // top right, above tileset
         {
             string str = "";
-            str = hex_char(tile_y) + hex_char(tile_x);
+            int dec_num = (tile_y * 16) + tile_x + ((tile_set & 3) * 256);
+            str = hex_char(tile_y) + hex_char(tile_x) + "   " + dec_num.ToString();
             label8.Text = str;
         }
 
@@ -520,23 +653,33 @@ namespace SNSPED
                 update_palette();
 
                 //update the boxes
-                int red = Palettes.pal_r[selection];
-                textBox1.Text = red.ToString();
-                trackBar1.Value = red / 8;
-
-                int green = Palettes.pal_g[selection];
-                textBox2.Text = green.ToString();
-                trackBar2.Value = green / 8;
-
-                int blue = Palettes.pal_b[selection];
-                textBox3.Text = blue.ToString();
-                trackBar3.Value = blue / 8;
-                update_box4();
+                rebuild_pal_boxes();
             }
 
             common_update2();
             label5.Focus();
         }
+
+
+        public void rebuild_pal_boxes()
+        {
+            int selection = pal_x + (pal_y * 16);
+
+            int red = Palettes.pal_r[selection];
+            textBox1.Text = red.ToString();
+            trackBar1.Value = red / 8;
+
+            int green = Palettes.pal_g[selection];
+            textBox2.Text = green.ToString();
+            trackBar2.Value = green / 8;
+
+            int blue = Palettes.pal_b[selection];
+            textBox3.Text = blue.ToString();
+            trackBar3.Value = blue / 8;
+
+            update_box4();
+        }
+
 
         private void update_box4() // when boxes 1,2,or 3 changed
         { // text box 4 = hex
@@ -568,6 +711,7 @@ namespace SNSPED
         { // show grid
 
             update_metatile_image();
+            label5.Focus();
         }
 
 
@@ -578,30 +722,46 @@ namespace SNSPED
 
             if (e.KeyChar == (char)Keys.Return)
             {
-                string str = textBox5.Text;
-                if (str.Length > 1) return; // should be 1 digit
-                char testchr = str[0];
-                if ((testchr < '0') || (testchr > '7'))
-                {
-                    return;
-                }
-                else
-                {
-                    int temp_val = 0;
-                    int.TryParse(str, out temp_val);
-                    if (listBox2.SelectedItems.Count < 1) return;
-
-                    foreach (int index in listBox2.SelectedIndices)
-                    { 
-                        MetaspriteArray[selected_meta].palette[index] = temp_val;
-                        
-                    }
-                }
-
-                rebuild_spr_list();
-                update_metatile_image();
+                update_textbox5();
                 e.Handled = true; // prevent ding on return press
             }
+        }
+
+
+        private void textBox5_Leave(object sender, EventArgs e)
+        {
+            update_textbox5();
+        }
+
+
+        public void update_textbox5()
+        {
+            Checkpoint();
+
+            string str = textBox5.Text;
+            //if (str.Length > 1) return; // should be 1 digit
+
+            char testchr = str[0];
+            if ((testchr < '0') || (testchr > '7'))
+            {
+                textBox5.Text = "0";
+                str = "0";
+            }
+            //else
+            {
+                int temp_val = 0;
+                int.TryParse(str, out temp_val);
+                if (listBox2.SelectedItems.Count < 1) return;
+
+                foreach (int index in listBox2.SelectedIndices)
+                {
+                    MetaspriteArray[selected_meta].palette[index] = temp_val;
+
+                }
+            }
+
+            rebuild_spr_list();
+            update_metatile_image();
         }
 
 
@@ -610,8 +770,10 @@ namespace SNSPED
             //flip the selected tile, unless select all, then flip all.
             if (MetaspriteArray[selected_meta].sprite_count == 0) return;
             if (listBox2.SelectedItems.Count < 1) return;
-            
-            int x_least, x_most, temp1, temp2, temp3;
+
+            Checkpoint();
+
+            int x_least, x_most, temp1, temp3;
             // get smallest and largest
             x_least = 64;
             x_most = -64;
@@ -641,6 +803,8 @@ namespace SNSPED
             label19.Text = str;
             
             update_metatile_image();
+
+            label5.Focus();
         }
 
         private void button3_Click(object sender, EventArgs e)
@@ -648,8 +812,10 @@ namespace SNSPED
             //flip the selected tile, unless select all, then flip all.
             if (MetaspriteArray[selected_meta].sprite_count == 0) return;
             if (listBox2.SelectedItems.Count < 1) return;
-            
-            int y_least, y_most, temp1, temp2, temp3;
+
+            Checkpoint();
+
+            int y_least, y_most, temp1, temp3;
             // get smallest and largest
             y_least = 64;
             y_most = -64;
@@ -679,6 +845,8 @@ namespace SNSPED
             
             rebuild_one_item();
             update_metatile_image();
+
+            label5.Focus();
         }
 
         private void button12_Click(object sender, EventArgs e)
@@ -686,7 +854,9 @@ namespace SNSPED
             //resize the selected tile, unless select all, then resize all.
             if (MetaspriteArray[selected_meta].sprite_count == 0) return;
             if (listBox2.SelectedItems.Count < 1) return;
-            
+
+            Checkpoint();
+
             foreach (int index in listBox2.SelectedIndices)
             {
                 MetaspriteArray[selected_meta].size[index] =
@@ -700,6 +870,8 @@ namespace SNSPED
             
             rebuild_one_item();
             update_metatile_image();
+
+            label5.Focus();
         }
 
 
@@ -715,7 +887,9 @@ namespace SNSPED
             int num_sprites = listBox2.Items.Count;
             if (num_sprites < 1) return;
             int test = 0;
-            
+
+            Checkpoint();
+
             foreach (int index in listBox2.SelectedIndices)
             {
                 temp_x = MetaspriteArray[selected_meta].rel_x[index];
@@ -741,6 +915,8 @@ namespace SNSPED
             label19.Text = str;
             
             update_metatile_image();
+
+            label5.Focus();
         }
 
         private void button5_Click(object sender, EventArgs e)
@@ -752,6 +928,9 @@ namespace SNSPED
             int num_sprites = listBox2.Items.Count;
             if (num_sprites < 1) return;
             int test = 0;
+
+            Checkpoint();
+
             // test each, make sure in range
             foreach (int index in listBox2.SelectedIndices)
             {
@@ -779,6 +958,8 @@ namespace SNSPED
             label19.Text = str;
             
             update_metatile_image();
+
+            label5.Focus();
         }
 
         private void button6_Click(object sender, EventArgs e)
@@ -790,6 +971,9 @@ namespace SNSPED
             int num_sprites = listBox2.Items.Count;
             if (num_sprites < 1) return;
             int test = 0;
+
+            Checkpoint();
+
             // test each, make sure in range
             foreach (int index in listBox2.SelectedIndices)
             {
@@ -816,6 +1000,8 @@ namespace SNSPED
             label19.Text = str;
             
             update_metatile_image();
+
+            label5.Focus();
         }
 
         private void button7_Click(object sender, EventArgs e)
@@ -827,6 +1013,9 @@ namespace SNSPED
             int num_sprites = listBox2.Items.Count;
             if (num_sprites < 1) return;
             int test = 0;
+
+            Checkpoint();
+
             // test each, make sure in range
             foreach (int index in listBox2.SelectedIndices)
             {
@@ -853,6 +1042,8 @@ namespace SNSPED
             label19.Text = str;
             
             update_metatile_image();
+
+            label5.Focus();
         }
 
 
@@ -892,6 +1083,9 @@ namespace SNSPED
             int temp1, temp2, temp3, temp4, temp5, temp6, temp7, temp8;
             int index2 = listBox2.SelectedIndex;
             if (index2 < 1) return;
+
+            Checkpoint();
+
             int index1 = index2 - 1;
 
             //swap 2 sprites
@@ -927,6 +1121,8 @@ namespace SNSPED
             listBox2.SelectedIndex = index1;
             rebuild_one_item();
             update_metatile_image();
+
+            label5.Focus();
         }
 
         private void button9_Click(object sender, EventArgs e)
@@ -943,6 +1139,8 @@ namespace SNSPED
             int index1 = listBox2.SelectedIndex;
             int index2 = index1 + 1;
             if (index2 >= listBox2.Items.Count) return;
+
+            Checkpoint();
 
             //swap 2 sprites
             temp1 = MetaspriteArray[selected_meta].tile[index1];
@@ -977,6 +1175,8 @@ namespace SNSPED
             listBox2.SelectedIndex = index2;
             rebuild_one_item();
             update_metatile_image();
+
+            label5.Focus();
         }
 
         
@@ -993,6 +1193,7 @@ namespace SNSPED
                 common_update2();
 
                 e.Handled = true; // prevent ding on return press
+                label5.Focus();
             }
         }
 
@@ -1008,6 +1209,7 @@ namespace SNSPED
                 common_update2();
 
                 e.Handled = true; // prevent ding on return press
+                label5.Focus();
             }
         }
 
@@ -1023,6 +1225,7 @@ namespace SNSPED
                 common_update2();
 
                 e.Handled = true; // prevent ding on return press
+                label5.Focus();
             }
         }
 
@@ -1067,6 +1270,7 @@ namespace SNSPED
                 common_update2();
 
                 e.Handled = true; // prevent ding on return press
+                label5.Focus();
             }
         }
 
@@ -1170,21 +1374,25 @@ namespace SNSPED
 
             if (e.KeyCode == Keys.Left)
             {
+                Checkpoint();
                 e.IsInputKey = true;
                 Tiles.shift_left();
             }
             else if (e.KeyCode == Keys.Up)
             {
+                Checkpoint();
                 e.IsInputKey = true;
                 Tiles.shift_up();
             }
             else if (e.KeyCode == Keys.Right)
             {
+                Checkpoint();
                 e.IsInputKey = true;
                 Tiles.shift_right();
             }
             else if (e.KeyCode == Keys.Down)
             {
+                Checkpoint();
                 e.IsInputKey = true;
                 Tiles.shift_down();
             }
@@ -1211,22 +1419,27 @@ namespace SNSPED
             }
             else if (e.KeyCode == Keys.H)
             {
+                Checkpoint();
                 Tiles.tile_h_flip();
             }
             else if (e.KeyCode == Keys.V)
             {
+                Checkpoint();
                 Tiles.tile_v_flip();
             }
             else if (e.KeyCode == Keys.R)
             {
+                Checkpoint();
                 Tiles.tile_rot_cw();
             }
             else if (e.KeyCode == Keys.L)
             {
+                Checkpoint();
                 Tiles.tile_rot_ccw();
             }
             else if (e.KeyCode == Keys.Delete)
             {
+                Checkpoint();
                 Tiles.tile_delete();
             }
             else if (e.KeyCode == Keys.C)
@@ -1235,10 +1448,12 @@ namespace SNSPED
             }
             else if (e.KeyCode == Keys.P)
             {
+                Checkpoint();
                 Tiles.tile_paste();
             }
             else if (e.KeyCode == Keys.F)
             {
+                Checkpoint();
                 Tiles.tile_fill();
             }
             else if (e.KeyCode == Keys.Q)
@@ -1253,18 +1468,7 @@ namespace SNSPED
                 Palettes.pal_g[selection] = (byte)pal_g_copy;
                 Palettes.pal_b[selection] = (byte)pal_b_copy;
                 update_palette();
-                int red = Palettes.pal_r[selection];
-                textBox1.Text = red.ToString();
-                trackBar1.Value = red / 8;
-
-                int green = Palettes.pal_g[selection];
-                textBox2.Text = green.ToString();
-                trackBar2.Value = green / 8;
-
-                int blue = Palettes.pal_b[selection];
-                textBox3.Text = blue.ToString();
-                trackBar3.Value = blue / 8;
-                update_box4();
+                rebuild_pal_boxes();
             }
             else if (e.KeyCode == Keys.E)
             { // clear selected to color
@@ -1272,18 +1476,7 @@ namespace SNSPED
                 Palettes.pal_g[selection] = 0;
                 Palettes.pal_b[selection] = 0;
                 update_palette();
-                int red = Palettes.pal_r[selection];
-                textBox1.Text = red.ToString();
-                trackBar1.Value = red / 8;
-
-                int green = Palettes.pal_g[selection];
-                textBox2.Text = green.ToString();
-                trackBar2.Value = green / 8;
-
-                int blue = Palettes.pal_b[selection];
-                textBox3.Text = blue.ToString();
-                trackBar3.Value = blue / 8;
-                update_box4();
+                rebuild_pal_boxes();
             }
 
             else if (e.KeyCode == Keys.D1) // number key 1
@@ -1294,6 +1487,10 @@ namespace SNSPED
             {
                 set2_change();
             }
+            else if (e.KeyCode == Keys.Z)
+            {
+                Do_Undo();
+            }
 
 
             common_update2();
@@ -1303,9 +1500,6 @@ namespace SNSPED
 
         
 
-        
-
-
 
         private void textBox6_KeyPress(object sender, KeyPressEventArgs e)
         { // rename metasprite
@@ -1314,39 +1508,69 @@ namespace SNSPED
 
             if (e.KeyChar == (char)Keys.Return)
             {
-                MetaspriteArray[selected_meta].name = textBox6.Text;
-
-                cancel_index_change = true;
-                // I think it was calling the index changed event
-                listBox1.Items[selected_meta] = textBox6.Text;
-                cancel_index_change = false;
+                update_textbox6();
 
                 e.Handled = true; // prevent ding on return press
             }
         }
 
+
+        private void textBox6_Leave(object sender, EventArgs e)
+        {
+            update_textbox6();
+        }
+
+
+        public void update_textbox6()
+        { // rename metasprite
+            Checkpoint();
+
+            MetaspriteArray[selected_meta].name = textBox6.Text;
+
+            cancel_index_change = true;
+            // I think it was calling the index changed event
+            listBox1.Items[selected_meta] = textBox6.Text;
+            cancel_index_change = false;
+        }
+
+
         private void textBox7_KeyPress(object sender, KeyPressEventArgs e)
         { // priority for whole metasprite
-            int temp_val = 0;
+            //int temp_val = 0;
             if (e.KeyChar == (char)Keys.Return)
             {
-                string str = textBox7.Text;
-                if (str.Length > 1) return; // should be 1 digit
-                char testchr = str[0];
-                if((testchr < '0') || (testchr > '3'))
-                {
-                    textBox7.Text = "0";
-                    MetaspriteArray[selected_meta].priority = 0;
-                    return;
-                }
-                //else we have a number between 0-3
-                
-                textBox7.Text = str;
-                int.TryParse(str, out temp_val);
-                MetaspriteArray[selected_meta].priority = temp_val;
+                update_textbox7();
 
                 e.Handled = true; // prevent ding on return press
             }
+        }
+
+
+        private void textBox7_Leave(object sender, EventArgs e)
+        {
+            update_textbox7();
+        }
+
+
+        public void update_textbox7()
+        { // priority all
+            Checkpoint();
+
+            int temp_val = 0;
+            string str = textBox7.Text;
+            if (str.Length > 1) return; // should be 1 digit
+            char testchr = str[0];
+            if ((testchr < '0') || (testchr > '3'))
+            {
+                textBox7.Text = "0";
+                MetaspriteArray[selected_meta].priority = 0;
+                return;
+            }
+            //else we have a number between 0-3
+
+            textBox7.Text = str;
+            int.TryParse(str, out temp_val);
+            MetaspriteArray[selected_meta].priority = temp_val;
         }
 
         
@@ -1384,6 +1608,9 @@ namespace SNSPED
                 MessageBox.Show("Select only one sprite.");
                 return;
             }
+
+            Checkpoint();
+
             if (MetaspriteArray[selected_meta].sprite_count == 1)
             {
                 // only 1 item, just delete all
@@ -1435,16 +1662,20 @@ namespace SNSPED
             label19.Text = str;
 
             update_metatile_image();
+            label5.Focus();
         }
 
         private void button11_Click(object sender, EventArgs e)
         { // delete all tiles from metatile
+            Checkpoint();
+
             MetaspriteArray[selected_meta].sprite_count = 0;
             listBox2.Items.Clear();
             listBox2.Refresh();
             selected_spr = 0;
             label19.Text = "00";
             update_metatile_image();
+            label5.Focus();
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -1470,6 +1701,8 @@ namespace SNSPED
             if (listBox1.SelectedIndex < 0) return;
             if (cancel_index_change) return;
 
+            undo_ready = false;
+
             selected_meta = listBox1.SelectedIndex;
             string str = "";
             if (selected_meta < 10) str = "0";
@@ -1489,6 +1722,7 @@ namespace SNSPED
             selected_spr = 0;
             label19.Text = "00";
             update_metatile_image();
+            label5.Focus();
         }
 
         private void rebuild_spr_list()
@@ -1556,7 +1790,7 @@ namespace SNSPED
         }
 
         private void button13_Click(object sender, EventArgs e)
-        {
+        { // select all
             int how_many = listBox2.Items.Count;
             if (how_many < 1) return;
             for(int i = 0; i < how_many; i++)
@@ -1564,7 +1798,7 @@ namespace SNSPED
                 listBox2.SetSelected(i, true);
             }
             rebuild_spr_list();
-            
+            label5.Focus();
         }
 
         private void trackBar1_MouseMove(object sender, MouseEventArgs e)
@@ -1580,6 +1814,7 @@ namespace SNSPED
                 update_palette();
 
                 common_update2();
+                label5.Focus();
             }
         }
 
@@ -1596,6 +1831,7 @@ namespace SNSPED
                 update_palette();
 
                 common_update2();
+                label5.Focus();
             }
         }
 
@@ -1612,6 +1848,7 @@ namespace SNSPED
                 update_palette();
 
                 common_update2();
+                label5.Focus();
             }
         }
 
@@ -1625,10 +1862,698 @@ namespace SNSPED
             label5.Focus();
         }
 
+
         private void trackBar3_MouseUp(object sender, MouseEventArgs e)
         {
             label5.Focus();
         }
+
+        private void saveTilesInRangeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // remember to put the form location as "manual"
+            if (newChild4 != null)
+            {
+                newChild4.BringToFront();
+            }
+            else
+            {
+                newChild4 = new Form4();
+                newChild4.Owner = this;
+                int xx = Screen.PrimaryScreen.Bounds.Width;
+                if (this.Location.X + 200 < xx) // set new form location
+                {
+                    newChild4.Location = new Point(this.Location.X + 100, this.Location.Y + 80);
+                }
+                else
+                {
+                    newChild4.Location = new Point(xx - 100, this.Location.Y);
+                }
+
+                newChild4.Show();
+                //update
+            }
+        }
+
+        private void loadToSelectedTileToolStripMenuItem_Click(object sender, EventArgs e)
+        { // TILES / Load to Selected Tile
+            int[] bit1 = new int[8]; // bit planes
+            int[] bit2 = new int[8];
+            int[] bit3 = new int[8];
+            int[] bit4 = new int[8];
+            int temp1, temp2, temp3, temp4;
+            int[] temp_tiles = new int[0x4000]; // 32 per tile * 512 tiles
+            int size_temp_tiles = 0;
+
+            // tile_set 0 or 1
+            int offset_tiles_ar = (tile_x * 64) + (tile_y * 1024) + (tile_set * 0x4000);
+
+            OpenFileDialog openFileDialog1 = new OpenFileDialog();
+            openFileDialog1.Title = "Load tiles to the selected tile";
+            openFileDialog1.Filter = "Tileset (*.chr)|*.chr|All files (*.*)|*.*";
+
+            if (openFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                
+                System.IO.FileStream fs = (System.IO.FileStream)openFileDialog1.OpenFile();
+                if (fs.Length >= 32) // at least one tile.
+                {
+                    Checkpoint();
+
+                    size_temp_tiles = (int)fs.Length & 0xffe0; // round down
+                    if (size_temp_tiles > 0x4000) size_temp_tiles = 0x4000; // max
+                    // copy file to the temp array.
+                    for (int i = 0; i < size_temp_tiles; i++)
+                    {
+                        temp_tiles[i] = (byte)fs.ReadByte();
+                    }
+
+                    int num_loops;
+                    int chr_index = 0;
+
+
+                    num_loops = size_temp_tiles / 32; // 32 bytes per tile
+                    for (int i = 0; i < num_loops; i++)
+                    {
+                        // get 32 bytes per tile
+                        for (int y = 0; y < 8; y++) // get 8 sets of bitplanes
+                        {
+                            // get the 4 bitplanes for each tile row
+                            int y2 = y * 2;
+                            bit1[y] = temp_tiles[chr_index + y2];
+                            bit2[y] = temp_tiles[chr_index + y2 + 1];
+                            bit3[y] = temp_tiles[chr_index + y2 + 16];
+                            bit4[y] = temp_tiles[chr_index + y2 + 17];
+
+                            for (int x = 7; x >= 0; x--) // right to left
+                            {
+                                temp1 = bit1[y] & 1;    // get a bit from each bitplane
+                                bit1[y] = bit1[y] >> 1;
+                                temp2 = bit2[y] & 1;
+                                bit2[y] = bit2[y] >> 1;
+                                temp3 = bit3[y] & 1;
+                                bit3[y] = bit3[y] >> 1;
+                                temp4 = bit4[y] & 1;
+                                bit4[y] = bit4[y] >> 1;
+                                Tiles.Tile_Arrays[offset_tiles_ar + x] =
+                                    (temp4 << 3) + (temp3 << 2) + (temp2 << 1) + temp1;
+                            }
+                            offset_tiles_ar += 8;
+                        }
+                        chr_index += 32;
+
+                        //don't go too far, even if more tiles to read
+                        if (offset_tiles_ar >= 32768) break; // end of tile array
+                    }
+
+
+                }
+                else
+                {
+                    MessageBox.Show("File size error. Too small.",
+                    "File size error", MessageBoxButtons.OK);
+                }
+
+                fs.Close();
+
+                common_update2();
+
+                //disable_map_click = 1;  // fix bug, double click causing
+                                        // mouse event on tilemap
+            }
+
+        }
+
+        private void undoToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Do_Undo();
+        }
+
+        private void checkBox1_Click(object sender, EventArgs e)
+        {
+            label5.Focus();
+        }
+
+        private void checkBox2_Click(object sender, EventArgs e)
+        {
+            label5.Focus();
+        }
+
+        private void checkBox4_Click(object sender, EventArgs e)
+        {
+            label5.Focus();
+        }
+
+        private void optionsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // remember to put the form location as "manual"
+            if (newChild3 != null)
+            {
+                newChild3.BringToFront();
+            }
+            else
+            {
+                newChild3 = new Form3();
+                newChild3.Owner = this;
+                int xx = Screen.PrimaryScreen.Bounds.Width;
+                if (this.Location.X + 600 < xx) // set new form location
+                {
+                    newChild3.Location = new Point(this.Location.X + 500, this.Location.Y + 80);
+                }
+                else
+                {
+                    newChild3.Location = new Point(xx - 100, this.Location.Y);
+                }
+
+                newChild3.Show();
+                //update
+            }
+        }
+
+
+        private void getPaletteFromImageToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // generate a palette from the image
+            using (OpenFileDialog dlg = new OpenFileDialog())
+            {
+                dlg.Title = "Open Image";
+                dlg.Filter = "Image Files .png .jpg .bmp .gif)|*.png;*.jpg;*.bmp;*.gif|" + "All Files (*.*)|*.*";
+
+                if (dlg.ShowDialog() == DialogResult.OK)
+                {
+                    Bitmap import_bmp = new Bitmap(dlg.FileName);
+
+                    if ((import_bmp.Height < 8) || (import_bmp.Width < 8))
+                    {
+                        MessageBox.Show("Error. File too small?");
+                        import_bmp.Dispose();
+                        return;
+                    }
+                    if ((import_bmp.Height > 128) || (import_bmp.Width > 128))
+                    {
+                        MessageBox.Show("Error. File too large. 128x128 max.");
+                        import_bmp.Dispose();
+                        return;
+                    }
+
+
+                    int num_col_to_find, start_offset;
+                    int red = 0, blue = 0, green = 0;
+                    Color temp_color = import_bmp.GetPixel(0,0);
+
+                    // if we have option "use top left pixel as 0 color"
+                    red = temp_color.R & 0xf8;
+                    int RememberZeroR = red;
+                    green = temp_color.G & 0xf8;
+                    int RememberZeroG = green;
+                    blue = temp_color.B & 0xf8;
+                    int RememberZeroB = blue;
+
+
+                    num_col_to_find = 16;
+                    start_offset = pal_y * 16;
+
+
+                    image_height = import_bmp.Height;
+                    image_width = import_bmp.Width;
+                    
+                    // copy the bitmap, crop but don't resize
+                    // copy pixel by pixel
+                    for (int xx = 0; xx < 128; xx++)
+                    {
+                        for (int yy = 0; yy < 128; yy++)
+                        {
+                            if ((xx < image_width) && (yy < image_height))
+                            {
+                                temp_color = import_bmp.GetPixel(xx, yy);
+                            }
+                            else
+                            {
+                                temp_color = Color.Gray;
+                            }
+                            cool_bmp.SetPixel(xx, yy, temp_color);
+                        }
+                    }
+
+
+
+                    int color_found = 0;
+                    
+                    int temp_var, closest_cnt, added;
+
+                    // default colors
+
+                    // blank the arrays
+                    for (int i = 0; i < 65536; i++)
+                    {
+                        R_Array[i] = 0;
+                        G_Array[i] = 0;
+                        B_Array[i] = 0;
+                        Count_Array[i] = 0;
+                    }
+                    color_count = 0;
+
+                    Color tempcolor = Color.Black;
+
+                    // read all possible colors from the orig image
+                    // removing duplicates, keep track of how many
+                    for (int yy = 0; yy < image_height; yy++)
+                    {
+                        for (int xx = 0; xx < image_width; xx++)
+                        {
+                            tempcolor = cool_bmp.GetPixel(xx, yy);
+                            // speed it up, narrow the possibilities.
+                            red = tempcolor.R & 0xf8;
+                            blue = tempcolor.G & 0xf8;
+                            green = tempcolor.B & 0xf8;
+                            tempcolor = Color.FromArgb(red, blue, green);
+
+                            // compare to all other colors, add if not present
+                            if (color_count == 0)
+                            {
+                                Add_Color(tempcolor);
+                                continue;
+                            }
+
+                            color_found = 0;
+                            for (int i = 0; i < color_count; i++)
+                            {
+                                if ((tempcolor.R == R_Array[i] &&
+                                    tempcolor.G == G_Array[i] &&
+                                    tempcolor.B == B_Array[i]))
+                                { // color match found
+                                    Count_Array[i] = Count_Array[i] + 1;
+                                    color_found = 1;
+                                    break;
+                                }
+                            }
+                            // no color match found
+                            if (color_found == 0)
+                            {
+                                Add_Color(tempcolor);
+                            }
+
+                        }
+                    }
+                    
+                    // this mid point algorithm tends avoid extremes
+                    // give extra weight to the lowest value and the highest value
+                    // first find the darkest and lightest colors
+                    int darkest = 999;
+                    int darkest_index = 0;
+                    int lightest = 0;
+                    int lightest_index = 0;
+                    for (int i = 0; i < color_count; i++)
+                    {
+                        added = R_Array[i] + G_Array[i] + B_Array[i];
+                        if (added < darkest)
+                        {
+                            darkest = added;
+                            darkest_index = i;
+                        }
+                        if (added > lightest)
+                        {
+                            lightest = added;
+                            lightest_index = i;
+                        }
+                    }
+                    // give more count to them
+                    temp_var = image_width * image_height / 8; // 8 is magic
+                    Count_Array[darkest_index] += temp_var;
+                    Count_Array[lightest_index] += temp_var;
+
+                    // then reduce to 16 colors, using a mid point merge with
+                    // the closest neighbor color
+
+                    int color_count2 = color_count;
+                    while (color_count2 > num_col_to_find)
+                    {
+                        //find the least count
+                        int least_index = 0;
+                        int least_cnt = 99999;
+                        for (int i = 0; i < color_count; i++)
+                        {
+                            if (Count_Array[i] == 0) continue;
+                            if (Count_Array[i] < least_cnt)
+                            {
+                                least_cnt = Count_Array[i];
+                                least_index = i;
+                            }
+                        }
+                        // delete itself
+                        Count_Array[least_index] = 0;
+
+                        int closest_index = 0;
+                        int closest_val = 999999;
+                        r_val = R_Array[least_index];
+                        g_val = G_Array[least_index];
+                        b_val = B_Array[least_index];
+                        int dR = 0, dG = 0, dB = 0;
+
+                        // find the closest to that one
+                        for (int i = 0; i < color_count; i++)
+                        {
+                            if (Count_Array[i] == 0) continue;
+                            dR = r_val - R_Array[i];
+                            dG = g_val - G_Array[i];
+                            dB = b_val - B_Array[i];
+                            diff_val = ((dR * dR) + (dG * dG) + (dB * dB));
+
+                            if (diff_val < closest_val)
+                            {
+                                closest_val = diff_val;
+                                closest_index = i;
+                            }
+                        }
+
+                        closest_cnt = Count_Array[closest_index];
+
+                        // merge closet index with least index, mid point
+                        temp_var = (closest_cnt + least_cnt);
+                        // the algorithm was (color1 + color2) / 2
+                        // but now, multiplied each by their count, div by both counts
+                        r_val = (R_Array[least_index] * least_cnt) + (R_Array[closest_index] * closest_cnt);
+                        r_val = (int)Math.Round((double)r_val / temp_var);
+                        g_val = (G_Array[least_index] * least_cnt) + (G_Array[closest_index] * closest_cnt);
+                        g_val = (int)Math.Round((double)g_val / temp_var);
+                        b_val = (B_Array[least_index] * least_cnt) + (B_Array[closest_index] * closest_cnt);
+                        b_val = (int)Math.Round((double)b_val / temp_var);
+                        R_Array[closest_index] = r_val;
+                        G_Array[closest_index] = g_val;
+                        B_Array[closest_index] = b_val;
+                        Count_Array[closest_index] = closest_cnt + least_cnt;
+
+                        color_count2--;
+
+                    }
+
+                    // always palette zero
+                    // zero fill the palette, before filling (black)
+                    for (int i = 0; i < num_col_to_find; i++)
+                    {
+                        int j = start_offset + i;
+                        Palettes.pal_r[j] = 0;
+                        Palettes.pal_g[j] = 0;
+                        Palettes.pal_b[j] = 0;
+                    }
+                    // then go through the array and pull out 16 numbers
+                    int findindex = 0;
+                    int color_count3 = 0;
+                    while (color_count3 < color_count2)
+                    {
+                        if (Count_Array[findindex] != 0)
+                        {
+                            SixteenColorIndexes[color_count3] = findindex;
+                            color_count3++;
+                        }
+
+                        findindex++;
+                        if (findindex >= 65536) break;
+
+                    }
+
+                    // then sort by darkness
+                    for (int i = 0; i < 16; i++) // zero them
+                    {
+                        SixteenColorsAdded[i] = 0;
+                    }
+                    for (int i = 0; i < color_count2; i++) // add them up (rough brightness)
+                    {
+                        SixteenColorsAdded[i] += R_Array[SixteenColorIndexes[i]];
+                        SixteenColorsAdded[i] += G_Array[SixteenColorIndexes[i]];
+                        SixteenColorsAdded[i] += B_Array[SixteenColorIndexes[i]];
+                    }
+                    int temp_val;
+                    while (true)
+                    {
+                        bool sorted = true;
+                        for (int i = 0; i < color_count2 - 1; i++) // add them up (rough brightness)
+                        {
+                            if (SixteenColorsAdded[i] > SixteenColorsAdded[i + 1])
+                            {
+                                sorted = false;
+                                // swap them
+                                temp_val = SixteenColorsAdded[i];
+                                SixteenColorsAdded[i] = SixteenColorsAdded[i + 1];
+                                SixteenColorsAdded[i + 1] = temp_val;
+                                temp_val = SixteenColorIndexes[i];
+                                SixteenColorIndexes[i] = SixteenColorIndexes[i + 1];
+                                SixteenColorIndexes[i + 1] = temp_val;
+                            }
+                        }
+                        if (sorted == true) break;
+                    }
+
+
+                    // then fill the palette with the colors
+                    for (int i = 0; i < color_count2; i++)
+                    {
+                        int j = start_offset + i;
+                        Palettes.pal_r[j] = (byte)(R_Array[SixteenColorIndexes[i]] & 0xf8);
+                        Palettes.pal_g[j] = (byte)(G_Array[SixteenColorIndexes[i]] & 0xf8);
+                        Palettes.pal_b[j] = (byte)(B_Array[SixteenColorIndexes[i]] & 0xf8);
+                    }
+
+
+
+                    // if checkbox to use top left pixel as transparent, shift that color in place.
+                    // review this. could be buggy.
+                    if (f3_cb1 == true)
+                    {
+                        tempcolor = Color.FromArgb(RememberZeroR, RememberZeroG, RememberZeroB);
+                        int remove_index = Best_Color(tempcolor, num_col_to_find, start_offset);
+                        // we have 1 too many color, remove the one closest to the transparent color
+                        // from before... shuffle the lower colors upward 1 slot
+                        for (int i = remove_index; i > 0; i--)
+                        {
+                            int j = start_offset + i;
+                            Palettes.pal_r[j] = Palettes.pal_r[j - 1];
+                            Palettes.pal_g[j] = Palettes.pal_g[j - 1];
+                            Palettes.pal_b[j] = Palettes.pal_b[j - 1];
+                        }
+
+                        // insert the zero color at the zero offset
+                        Palettes.pal_r[start_offset] = (byte)RememberZeroR;
+                        Palettes.pal_g[start_offset] = (byte)RememberZeroG;
+                        Palettes.pal_b[start_offset] = (byte)RememberZeroB;
+                    }
+
+
+                    // copy the 0th color to zero
+                    Palettes.pal_r[0] = Palettes.pal_r[start_offset];
+                    Palettes.pal_g[0] = Palettes.pal_g[start_offset];
+                    Palettes.pal_b[0] = Palettes.pal_b[start_offset];
+                    // then update the palette image
+                    update_palette();
+
+                    //update the boxes
+                    rebuild_pal_boxes();
+
+                    common_update2();
+                    import_bmp.Dispose();
+                }
+            }
+
+        }
+
+
+        public void Add_Color(Color tempcolor)
+        {
+            R_Array[color_count] = tempcolor.R;
+            G_Array[color_count] = tempcolor.G;
+            B_Array[color_count] = tempcolor.B;
+            Count_Array[color_count] = 1;
+
+            color_count++;
+        }
+
+
+        public int Best_Color(Color temp_color, int num_col, int start_offset)
+        {
+            int best_index = 0;
+            int best_count = 99999;
+
+            for (int i = 0; i < num_col; i++)
+            {
+                int i2 = start_offset + i;
+                int red = Palettes.pal_r[i2] - temp_color.R;
+                red = Math.Abs(red);
+                int green = Palettes.pal_g[i2] - temp_color.G;
+                green = Math.Abs(green);
+                int blue = Palettes.pal_b[i2] - temp_color.B;
+                blue = Math.Abs(blue);
+                int sum = red + green + blue;
+                if (sum < best_count)
+                {
+                    best_count = sum;
+                    best_index = i;
+                }
+            }
+
+            return best_index;
+        }
+
+
+
+        private void getTilesFromImageToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // import an image 128x128, generate CHR based on existing palette
+            // load to the current tileset
+
+            // load image, generate CHR from it
+            using (OpenFileDialog dlg = new OpenFileDialog())
+            {
+                dlg.Title = "Open Image";
+                dlg.Filter = "Image Files .png .jpg .bmp .gif)|*.png;*.jpg;*.bmp;*.gif|" + "All Files (*.*)|*.*";
+
+                if (dlg.ShowDialog() == DialogResult.OK)
+                {
+                    
+
+                    Bitmap import_bmp = new Bitmap(dlg.FileName);
+
+                    if ((import_bmp.Height < 8) || (import_bmp.Width < 8))
+                    {
+                        MessageBox.Show("Error. File too small?");
+                        import_bmp.Dispose();
+                        return;
+                    }
+                    if ((import_bmp.Height > 128) || (import_bmp.Width > 128))
+                    {
+                        MessageBox.Show("Error. File too large. 128x128 max.");
+                        import_bmp.Dispose();
+                        return;
+                    }
+
+                    Checkpoint();
+
+                    int num_col, start_offset;
+                    
+                    num_col = 16;
+                    start_offset = pal_y * 16;
+
+                    // make sure color zero is correct
+                    Palettes.pal_r[start_offset] = Palettes.pal_r[0];
+                    Palettes.pal_g[start_offset] = Palettes.pal_g[0];
+                    Palettes.pal_b[start_offset] = Palettes.pal_b[0];
+
+                    Color trans_color = Color.FromArgb(Palettes.pal_r[0], Palettes.pal_g[0], Palettes.pal_b[0]);
+
+                    image_height = import_bmp.Height;
+                    image_width = import_bmp.Width;
+
+                    Color temp_color;
+                    // copy the bitmap, crop but don't resize
+                    // copy pixel by pixel
+                    for (int xx = 0; xx < 128; xx++)
+                    {
+                        for (int yy = 0; yy < 128; yy++)
+                        {
+                            if ((xx < image_width) && (yy < image_height))
+                            {
+                                temp_color = import_bmp.GetPixel(xx, yy);
+                            }
+                            else
+                            {
+                                temp_color = trans_color;
+                            }
+                            cool_bmp.SetPixel(xx, yy, temp_color);
+                        }
+                    }
+
+
+                    int final_y, final_x, best_index, chr_index, tile_num, pixel_num;
+                    //int temp_set = 0;
+                    int count = 0;
+
+                    // get best color for each pixel
+                    // copied to int array, needy_chr_array
+
+                    // was 28.0
+                    dither_db = dither_factor / 20.0;
+
+                    dither_adjust = (int)(dither_db * 32.0);
+                    int red, green, blue, bayer_val;
+
+                    for (int y = 0; y < 256; y++)
+                    {
+                        for (int x = 0; x < 256; x++)
+                        {
+                            if ((x >= image_width) || (y >= image_height))
+                            {
+                                needy_chr_array[count] = 0;
+                            }
+                            else
+                            {
+                                // get the pixel and find its best color
+                                temp_color = cool_bmp.GetPixel(x, y);
+
+                                if (dither_factor != 0)
+                                {
+                                    // add dithering
+                                    red = temp_color.R - dither_adjust; // keep it from lightening
+                                    green = temp_color.G - dither_adjust;
+                                    blue = temp_color.B - dither_adjust;
+                                    bayer_val = BAYER_MATRIX[x % 8, y % 8];
+                                    bayer_val = (int)((double)bayer_val * dither_db);
+                                    red += bayer_val;
+                                    red = Math.Max(0, red); // clamp min max
+                                    red = Math.Min(255, red);
+                                    green += bayer_val;
+                                    green = Math.Max(0, green);
+                                    green = Math.Min(255, green);
+                                    blue += bayer_val;
+                                    blue = Math.Max(0, blue);
+                                    blue = Math.Min(255, blue);
+                                    temp_color = Color.FromArgb(red, green, blue);
+                                }
+
+                                best_index = Best_Color(temp_color, num_col, start_offset);
+                                needy_chr_array[count] = best_index;
+                            }
+
+                            count++;
+                        }
+                    }
+
+                    // copy image to CHR
+                    tile_num = 0;
+                    int tile_offset = tile_set * 0x4000;
+
+                    for (int y1 = 0; y1 < 128; y1 += 8) // 16 tiles of 8x8
+                    {
+                        for (int x1 = 0; x1 < 128; x1 += 8) // ditto
+                        {
+                            for (int y2 = 0; y2 < 8; y2++) // 8 pixels tall
+                            {
+                                for (int x2 = 0; x2 < 8; x2++) // 8 pixels wide
+                                {
+                                    final_x = x1 + x2;
+                                    final_y = y1 + y2;
+
+                                    pixel_num = (final_y * 256) + final_x;
+                                    // 64 bytes per tile
+                                    chr_index = (tile_num * 64) + (y2 * 8) + x2;
+                                    chr_index += tile_offset;
+
+                                    Tiles.Tile_Arrays[chr_index] = needy_chr_array[pixel_num];
+                                }
+                            }
+                            tile_num++;
+                        }
+                    }
+
+                    
+                    // redraw everything
+                    common_update2();
+
+                    import_bmp.Dispose();
+                }
+            }
+
+
+        }
+
+
 
         public void update_tile_image() // redraw the visible tileset
         {
@@ -1682,13 +2607,14 @@ namespace SNSPED
             }
             pictureBox2.Image = temp_bmp;
             pictureBox2.Refresh();
-            //temp_bmp.Dispose(); //crashes the program ?
+            
         } // END REDRAW TILESET
 
 
         private void checkBox6_MouseUp(object sender, MouseEventArgs e)
         { // highlight selected
             update_metatile_image();
+            label5.Focus();
         }
 
         
@@ -1815,7 +2741,7 @@ namespace SNSPED
 
             if(checkBox6.Checked == true) // highlight selected
             {
-                int x_min, y_min, temp1, sp_size;
+                int x_min, y_min, sp_size;
                 selected_spr = listBox2.SelectedIndex;
                 if (selected_spr >= 0)
                 {

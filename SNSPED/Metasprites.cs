@@ -23,8 +23,7 @@
 
         public void Metasprite()
         {
-            // didn't use...
-            // not working ?
+            // nothing
         }
     }
 

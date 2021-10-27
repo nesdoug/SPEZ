@@ -5,6 +5,7 @@
         public static int[] Tile_Arrays = new int[2 * 256 * 8 * 8]; // 32768 
                                                                     // 2 sets, 256 tiles, 8 high, 8 wide
                                                                     // 4 sets 4bpp allow values 0-15
+        public static int[] Undo_Tile_Array = new int[2 * 256 * 8 * 8];
         public static int[] Tile_Copier = new int[8 * 8]; // one tile
         public static bool Has_Copied = false;
 

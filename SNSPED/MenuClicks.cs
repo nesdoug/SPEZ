@@ -41,6 +41,8 @@ namespace SNSPED
                 System.IO.FileStream fs = (System.IO.FileStream)openFileDialog1.OpenFile();
                 if (fs.Length == 58856)
                 {
+                    undo_ready = false;
+
                     for (int i = 0; i < 58856; i++)
                     {
                         big_array[i] = (byte)fs.ReadByte();
@@ -67,19 +69,7 @@ namespace SNSPED
                         }
 
                         // update the numbers in the boxes
-                        temp = pal_x + (pal_y * 16);
-                        int red = Palettes.pal_r[temp];
-                        textBox1.Text = red.ToString();
-                        trackBar1.Value = red / 8;
-
-                        int green = Palettes.pal_g[temp];
-                        textBox2.Text = green.ToString();
-                        trackBar2.Value = green / 8;
-
-                        int blue = Palettes.pal_b[temp];
-                        textBox3.Text = blue.ToString();
-                        trackBar3.Value = blue / 8;
-                        update_box4();
+                        rebuild_pal_boxes();
 
                         //load tiles, 2 x 256 x 4bpp
                         // copy the 4bpp tile sets
@@ -398,6 +388,8 @@ namespace SNSPED
                 }
                 else
                 {
+                    Checkpoint();
+                    
                     for (int i = 0; i < 422; i++)
                     {
                         b_array[i] = (byte)fs.ReadByte();
@@ -691,6 +683,8 @@ namespace SNSPED
 
         private void clearAllMetaspritesToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            undo_ready = false;
+            
             listBox2.Items.Clear();
 
             for (int i = 0; i < Form1.MAX_METASP; i++) // meta
@@ -736,7 +730,7 @@ namespace SNSPED
             // tile_set assumed to be 0-1
             // so offset_tiles_ar = 0, or 4000
             int offset_tiles_ar = 0x4000 * tile_set; // Tile_Arrays is 1 byte per pixel
-            int num_sets = 1;
+            //int num_sets = 1;
 
             OpenFileDialog openFileDialog1 = new OpenFileDialog();
             openFileDialog1.Title = "Select a 4bpp Tileset";
@@ -745,75 +739,60 @@ namespace SNSPED
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 System.IO.FileStream fs = (System.IO.FileStream)openFileDialog1.OpenFile();
-                if (fs.Length >= 16) // at least one tile.
+                if (fs.Length >= 32) // at least one tile.
                 {
-                    size_temp_tiles = (int)fs.Length & 0xe000; // round down to nearest 2000
+                    Checkpoint();
 
-                    if (((int)fs.Length & 0x1fff) > 0) // handle weird sizes.
-                    {
-                        // just bump up to next size.
-                        size_temp_tiles = size_temp_tiles + 0x2000;
-                    }
-                    if (size_temp_tiles < 0x2000) // min, 1 tileset worth.
-                    {
-                        size_temp_tiles = 0x2000;
-                    }
-                    if (fs.Length > 0x4000)
-                    {
-                        size_temp_tiles = 0x4000; // max, 2 tilesets worth.
-                    }
-                    if (size_temp_tiles == 0x4000)
-                    {
-                        // full size tiles, fill both sets
-                        offset_tiles_ar = 0;
-                        num_sets = 2;
-                    }
+                    // refactored, loads to the start of the currently selected set
 
-                    // make sure don't try to copy more bytes than exist.
-                    int min_size = size_temp_tiles;
-                    if (min_size > fs.Length)
-                    {
-                        min_size = (int)fs.Length;
-                    }
+                    size_temp_tiles = (int)fs.Length;
+                    if (size_temp_tiles > 0x4000) size_temp_tiles = 0x4000; // max
+
+                    int num_tiles = size_temp_tiles / 32;
+                    if (num_tiles < 1) num_tiles = 1; // min
+                    if (num_tiles > 1024) num_tiles = 1024; // max
 
                     // copy file to the temp array.
-                    for (int i = 0; i < min_size; i++)
+                    for (int i = 0; i < size_temp_tiles; i++)
                     {
                         temp_tiles[i] = (byte)fs.ReadByte();
                     }
 
-
-                    for (int temp_set = 0; temp_set < num_sets; temp_set++)
+                    for (int i = 0; i < num_tiles; i++) // 256 tiles
                     {
-                        for (int i = 0; i < 256; i++) // 256 tiles
+                        int index = 32 * i; // start of current tile
+                        
+                        for (int y = 0; y < 8; y++) // get 8 sets of bitplanes
                         {
-                            int index = (temp_set * 0x2000) + (32 * i); // start of current tile
-                            for (int y = 0; y < 8; y++) // get 8 sets of bitplanes
-                            {
-                                // get the 4 bitplanes for each tile row
-                                int y2 = y * 2; //0,2,4,6,8,10,12,14
-                                bit1[y] = temp_tiles[index + y2];
-                                bit2[y] = temp_tiles[index + y2 + 1];
-                                bit3[y] = temp_tiles[index + y2 + 16];
-                                bit4[y] = temp_tiles[index + y2 + 17];
+                            // get the 4 bitplanes for each tile row
+                            int y2 = y * 2; //0,2,4,6,8,10,12,14
+                            bit1[y] = temp_tiles[index + y2];
+                            bit2[y] = temp_tiles[index + y2 + 1];
+                            bit3[y] = temp_tiles[index + y2 + 16];
+                            bit4[y] = temp_tiles[index + y2 + 17];
 
-                                int offset = offset_tiles_ar + (temp_set * 256 * 8 * 8) + (i * 8 * 8) + (y * 8);
-                                for (int x = 7; x >= 0; x--) // right to left
-                                {
-                                    temp1 = bit1[y] & 1;    // get a bit from each bitplane
-                                    bit1[y] = bit1[y] >> 1;
-                                    temp2 = bit2[y] & 1;
-                                    bit2[y] = bit2[y] >> 1;
-                                    temp3 = bit3[y] & 1;
-                                    bit3[y] = bit3[y] >> 1;
-                                    temp4 = bit4[y] & 1;
-                                    bit4[y] = bit4[y] >> 1;
-                                    Tiles.Tile_Arrays[offset + x] =
-                                        (temp4 << 3) + (temp3 << 2) + (temp2 << 1) + temp1;
-                                }
+                            int offset = offset_tiles_ar + (i * 64) + (y * 8);
+                            if(offset >= 32768) // max, don't overflow
+                            {
+                                num_tiles = 0; // to break the outer loop
+                                break;
+                            }
+                            for (int x = 7; x >= 0; x--) // right to left
+                            {
+                                temp1 = bit1[y] & 1;    // get a bit from each bitplane
+                                bit1[y] = bit1[y] >> 1;
+                                temp2 = bit2[y] & 1;
+                                bit2[y] = bit2[y] >> 1;
+                                temp3 = bit3[y] & 1;
+                                bit3[y] = bit3[y] >> 1;
+                                temp4 = bit4[y] & 1;
+                                bit4[y] = bit4[y] >> 1;
+                                Tiles.Tile_Arrays[offset + x] =
+                                    (temp4 << 3) + (temp3 << 2) + (temp2 << 1) + temp1;
                             }
                         }
                     }
+
                 }
                 else
                 {
@@ -1005,7 +984,7 @@ namespace SNSPED
 
         }
 
-        private int convert_RLE(byte[] in_array, int in_size)
+        public int convert_RLE(byte[] in_array, int in_size)
         {
             byte[] in_array_P = new byte[65536];
             byte[] out_array_P = new byte[65536];
@@ -1274,6 +1253,8 @@ namespace SNSPED
 
         private void clearAllTilesToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            Checkpoint();
+
             for (int i = 0; i < 32768; i++)
             {
                 Tiles.Tile_Arrays[i] = 0;
@@ -1323,21 +1304,7 @@ namespace SNSPED
                     }
 
                     // update the numbers in the boxes
-                    temp = pal_x + (pal_y * 16);
-
-                    int red = Palettes.pal_r[temp];
-                    textBox1.Text = red.ToString();
-                    trackBar1.Value = red / 8;
-
-                    int green = Palettes.pal_g[temp];
-                    textBox2.Text = green.ToString();
-                    trackBar2.Value = green / 8;
-
-                    int blue = Palettes.pal_b[temp];
-                    textBox3.Text = blue.ToString();
-                    trackBar3.Value = blue / 8;
-
-                    update_box4();
+                    rebuild_pal_boxes();
                     update_palette();
                     common_update2();
                 }
@@ -1392,21 +1359,7 @@ namespace SNSPED
                     }
 
                     // update the numbers in the boxes
-                    temp = pal_x + (pal_y * 16);
-
-                    int red = Palettes.pal_r[temp];
-                    textBox1.Text = red.ToString();
-                    trackBar1.Value = red / 8;
-
-                    int green = Palettes.pal_g[temp];
-                    textBox2.Text = green.ToString();
-                    trackBar2.Value = green / 8;
-
-                    int blue = Palettes.pal_b[temp];
-                    textBox3.Text = blue.ToString();
-                    trackBar3.Value = blue / 8;
-
-                    update_box4();
+                    rebuild_pal_boxes();
                     update_palette();
                     common_update2();
                 }
@@ -1424,7 +1377,7 @@ namespace SNSPED
         private void loadPaletteFromRGBToolStripMenuItem_Click(object sender, EventArgs e)
         {
             byte[] pal_array = new byte[384]; // 128 entries * 3 colors
-            int temp, max_size;
+            int max_size;
 
             OpenFileDialog openFileDialog1 = new OpenFileDialog();
             openFileDialog1.Title = "Select a Palette file";
@@ -1457,21 +1410,7 @@ namespace SNSPED
                     }
 
                     // update the numbers in the boxes
-                    temp = pal_x + (pal_y * 16);
-
-                    int red = Palettes.pal_r[temp];
-                    textBox1.Text = red.ToString();
-                    trackBar1.Value = red / 8;
-
-                    int green = Palettes.pal_g[temp];
-                    textBox2.Text = green.ToString();
-                    trackBar2.Value = green / 8;
-
-                    int blue = Palettes.pal_b[temp];
-                    textBox3.Text = blue.ToString();
-                    trackBar3.Value = blue / 8;
-
-                    update_box4();
+                    rebuild_pal_boxes();
                     update_palette();
                     common_update2();
                 }
@@ -1742,6 +1681,7 @@ namespace SNSPED
 
             label9.Text = "1";
             common_update2();
+            tile_show_num();
         }
 
         private void set1ToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1762,6 +1702,7 @@ namespace SNSPED
 
             label9.Text = "2";
             common_update2();
+            tile_show_num();
         }
 
         private void set2ToolStripMenuItem_Click(object sender, EventArgs e)
