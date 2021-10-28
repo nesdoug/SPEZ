@@ -51,7 +51,7 @@ can be undone. Some things may not be reverted on undo.
 
 Import Image
 ------------
-Resize the image to 128x128 or less. Import an the palette
+Resize the image to 128x128 or less. Import the palette
 first, then import the CHR / tiles.
 There are some options, default has...
 -use the top left pixel as the transparent color.
