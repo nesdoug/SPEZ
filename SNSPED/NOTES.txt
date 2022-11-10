@@ -1,0 +1,29 @@
+﻿NOTES
+
+
+FUTURE TODOS - 
+-copy / paste / place multiple tiles at once (future version ?)
+(to rearrange the tiles more quickly)
+(or place multiple at once into meta ?)
+(this conflicts with the current click = box of size)
+(need seperate mode for it ?)
+
+-hitbox (future version ?)
+-center point / flip point
+(2nd hitbox ?)
+
+
+
+
+(done)
+-smart import single(done)
+-smart import multi(done)
+-text export says "8x8 and 16x16" instead of "8 and 16" (done)
+-white box on tile selection resizes (done)
+-corrected "use top left as transparent" for color different than expected (done)
+-moving metasprite won't deform it at edges (done)
+-less strict on moving sprite to far right or to far bottom (done)
+-selecting form sprite list will highlight the tile it uses (done)
+-changed default priority to 2 (done)
+-allow import palette as small as 2x1 pixels
+-importing images will only blank the part of the tileset it needs

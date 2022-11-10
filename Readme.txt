@@ -1,5 +1,5 @@
-SPEZ - SNES Sprite Editor ver 2.0
-Oct 27, 2021
+SPEZ - SNES Sprite Editor ver 2.1
+Nov 9, 2022
 .NET 4.5.2 (works with MONO on non-Windows systems)
 For SNES game development.
 Freeware by Doug Fraker
@@ -34,8 +34,18 @@ version history
     - changed icon
     - save tiles in range
     - load tiles to selected tile
-
-
+2.1 - added a "smart import" for metatiles
+    - output says 8x8 and 16x16 istead of 8 and 16
+	- white box on tile selection resizes to the
+	  currently selected sprite size (apply large, eg)
+    - clicking on a listbox will highlight a tile
+	- minor change on "use top left pixel as transparent"
+	- moving metasprites past the edge won't deform them
+	- less strict in moving sprites past edges
+	- default priority has been changed to 2
+	- allow small images to be imported as palettes
+	  (as small as 2x1) to allow 16x1 images as a palette
+	- importing images only blanks the tiles it needs
 
 Note, the RLE is a special compression format that I wrote, 
 specifically for SNES maps (but could be used for tiles).
@@ -55,8 +65,55 @@ Resize the image to 128x128 or less. Import the palette
 first, then import the CHR / tiles.
 There are some options, default has...
 -use the top left pixel as the transparent color.
-unchecked, it will organize the colors by darkness and
+-unchecked, it will organize the colors by darkness and
 use the darkest color as the transparent color.
+! if it imports incorrectly, try without this checked
+
+
+Smart Import Image
+------------------
+This will import an image (up to 128x128) as tiles, 
+starting at the currently selected tile, and the 
+currently selected metasprite, and then auto-generate 
+a metasprite(s) from it.
+
+There are 2 "Smart Options" - One and Multi
+-One will assume the entire image is part of the
+metasprite (the size options will be ignored)
+-Multi is for a sprite sheet... one image with
+multiple sprites that use the same palette that
+are arranged at regular intervals.
+In the options box, the size means the size in
+the original image, for each metasprite.
+You can have them arranged horiz/vert/or both.
+And it will auto-generate multiple metasprites.
+
+You are going to want to save before doing this.
+I think I have all the bugs out, but the Smart
+Import Feature is highly prone to user error.
+-it may overwrite tiles if you didn't select 
+a free area of the tileset
+-it may overwrite a metasprite, if you forget
+to select a blank one first
+-it may completely screw up if sprite size isn't
+correct in 2 different places.
+
+So... the steps are...
+-Save your file
+-Import your palette (maybe from the image)
+-Select the tile you want to start at
+-Select the first blank metasprite in the list
+-Check the Smart Import settings, it should
+ match what the imported image is doing
+-Check the Sprite Size Settings from top menu*
+-Now use the Smart Import
+
+*keep in mind that sprite size is a global setting
+that affects all sprites on the screen, and you
+probably want to keep it 8x8 and 16x16 even though
+your metasprite may be 64x64
+
+
 
 
 Metasprites
@@ -163,9 +220,6 @@ you are in the wrong mode. The message box should explain the problem.
 Loading just 32 bytes palette loads to the currently selected palette row.
 Same with saving 32 bytes. It saves the currently selected palette row.
 
-Saving Maps only saves the currently selected map. Loading maps only loads to
-the currently selected map.
-
 Loading/Saving 1 tileset will load/save the currently selected set. The bit
 depth needs to match, so consider marking each tileset with a 4 to
 keep them separate from other bit depths (such as 2 or 3 or 8).
@@ -198,7 +252,7 @@ name (20 chars) x 100 = (2000 total)
 
 ///////////////////////////////////////////////
 TODO-
--none
+-see NOTES.txt
 ///////////////////////////////////////////////
 
 

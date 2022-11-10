@@ -36,6 +36,8 @@
             this.saveSessionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exportImageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.closeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.undoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.metaspriteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.loadBinToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveBinToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -73,10 +75,10 @@
             this.getPaletteFromImageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.getTilesFromImageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.optionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.smartImportTilesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.smartImportOptionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.infoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutSNSPEDToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.undoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.pictureBox2 = new System.Windows.Forms.PictureBox();
             this.pictureBox3 = new System.Windows.Forms.PictureBox();
@@ -131,6 +133,7 @@
             this.trackBar1 = new System.Windows.Forms.TrackBar();
             this.trackBar2 = new System.Windows.Forms.TrackBar();
             this.trackBar3 = new System.Windows.Forms.TrackBar();
+            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
@@ -202,6 +205,21 @@
             this.closeToolStripMenuItem.Size = new System.Drawing.Size(145, 22);
             this.closeToolStripMenuItem.Text = "Close";
             this.closeToolStripMenuItem.Click += new System.EventHandler(this.closeToolStripMenuItem_Click);
+            // 
+            // editToolStripMenuItem
+            // 
+            this.editToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.undoToolStripMenuItem});
+            this.editToolStripMenuItem.Name = "editToolStripMenuItem";
+            this.editToolStripMenuItem.Size = new System.Drawing.Size(39, 20);
+            this.editToolStripMenuItem.Text = "Edit";
+            // 
+            // undoToolStripMenuItem
+            // 
+            this.undoToolStripMenuItem.Name = "undoToolStripMenuItem";
+            this.undoToolStripMenuItem.Size = new System.Drawing.Size(121, 22);
+            this.undoToolStripMenuItem.Text = "Undo (Z)";
+            this.undoToolStripMenuItem.Click += new System.EventHandler(this.undoToolStripMenuItem_Click);
             // 
             // metaspriteToolStripMenuItem
             // 
@@ -469,7 +487,10 @@
             this.importImageToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.getPaletteFromImageToolStripMenuItem,
             this.getTilesFromImageToolStripMenuItem,
-            this.optionsToolStripMenuItem});
+            this.optionsToolStripMenuItem,
+            this.toolStripMenuItem1,
+            this.smartImportTilesToolStripMenuItem,
+            this.smartImportOptionsToolStripMenuItem});
             this.importImageToolStripMenuItem.Name = "importImageToolStripMenuItem";
             this.importImageToolStripMenuItem.Size = new System.Drawing.Size(91, 20);
             this.importImageToolStripMenuItem.Text = "Import Image";
@@ -495,6 +516,20 @@
             this.optionsToolStripMenuItem.Text = "Options";
             this.optionsToolStripMenuItem.Click += new System.EventHandler(this.optionsToolStripMenuItem_Click);
             // 
+            // smartImportTilesToolStripMenuItem
+            // 
+            this.smartImportTilesToolStripMenuItem.Name = "smartImportTilesToolStripMenuItem";
+            this.smartImportTilesToolStripMenuItem.Size = new System.Drawing.Size(196, 22);
+            this.smartImportTilesToolStripMenuItem.Text = "Smart Import Tiles";
+            this.smartImportTilesToolStripMenuItem.Click += new System.EventHandler(this.smartImportTilesToolStripMenuItem_Click);
+            // 
+            // smartImportOptionsToolStripMenuItem
+            // 
+            this.smartImportOptionsToolStripMenuItem.Name = "smartImportOptionsToolStripMenuItem";
+            this.smartImportOptionsToolStripMenuItem.Size = new System.Drawing.Size(196, 22);
+            this.smartImportOptionsToolStripMenuItem.Text = "Smart Import Options";
+            this.smartImportOptionsToolStripMenuItem.Click += new System.EventHandler(this.smartImportOptionsToolStripMenuItem_Click);
+            // 
             // infoToolStripMenuItem
             // 
             this.infoToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -509,21 +544,6 @@
             this.aboutSNSPEDToolStripMenuItem.Size = new System.Drawing.Size(136, 22);
             this.aboutSNSPEDToolStripMenuItem.Text = "About SPEZ";
             this.aboutSNSPEDToolStripMenuItem.Click += new System.EventHandler(this.aboutSNSPEDToolStripMenuItem_Click);
-            // 
-            // editToolStripMenuItem
-            // 
-            this.editToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.undoToolStripMenuItem});
-            this.editToolStripMenuItem.Name = "editToolStripMenuItem";
-            this.editToolStripMenuItem.Size = new System.Drawing.Size(39, 20);
-            this.editToolStripMenuItem.Text = "Edit";
-            // 
-            // undoToolStripMenuItem
-            // 
-            this.undoToolStripMenuItem.Name = "undoToolStripMenuItem";
-            this.undoToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.undoToolStripMenuItem.Text = "Undo (Z)";
-            this.undoToolStripMenuItem.Click += new System.EventHandler(this.undoToolStripMenuItem_Click);
             // 
             // pictureBox1
             // 
@@ -1061,7 +1081,7 @@
             this.textBox7.Name = "textBox7";
             this.textBox7.Size = new System.Drawing.Size(28, 20);
             this.textBox7.TabIndex = 47;
-            this.textBox7.Text = "0";
+            this.textBox7.Text = "2";
             this.textBox7.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBox7_KeyPress);
             this.textBox7.Leave += new System.EventHandler(this.textBox7_Leave);
             // 
@@ -1152,6 +1172,12 @@
             this.trackBar3.MouseMove += new System.Windows.Forms.MouseEventHandler(this.trackBar3_MouseMove);
             this.trackBar3.MouseUp += new System.Windows.Forms.MouseEventHandler(this.trackBar3_MouseUp);
             // 
+            // toolStripMenuItem1
+            // 
+            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(196, 22);
+            this.toolStripMenuItem1.Text = " ";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1215,7 +1241,7 @@
             this.MainMenuStrip = this.menuStrip1;
             this.MaximizeBox = false;
             this.Name = "Form1";
-            this.Text = "SPEZ - SNES Sprite Editor ver 2.0";
+            this.Text = "SPEZ - SNES Sprite Editor ver 2.1";
             this.Load += new System.EventHandler(this.Form1_Load);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
@@ -1334,6 +1360,9 @@
         private System.Windows.Forms.ToolStripMenuItem saveTilesInRangeToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem editToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem undoToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem smartImportTilesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem smartImportOptionsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem1;
     }
 }
 

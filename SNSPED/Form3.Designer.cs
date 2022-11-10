@@ -50,9 +50,9 @@ namespace SNSPED
             this.checkBox1.CheckState = System.Windows.Forms.CheckState.Checked;
             this.checkBox1.Location = new System.Drawing.Point(36, 73);
             this.checkBox1.Name = "checkBox1";
-            this.checkBox1.Size = new System.Drawing.Size(136, 17);
+            this.checkBox1.Size = new System.Drawing.Size(187, 17);
             this.checkBox1.TabIndex = 1;
-            this.checkBox1.Text = "Use Top Left Pixel as 0";
+            this.checkBox1.Text = "Use Top Left Pixel as Transparent";
             this.checkBox1.UseVisualStyleBackColor = true;
             this.checkBox1.Click += new System.EventHandler(this.checkBox1_Click);
             // 
@@ -69,14 +69,14 @@ namespace SNSPED
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(234, 142);
+            this.ClientSize = new System.Drawing.Size(254, 142);
             this.Controls.Add(this.textBox1);
             this.Controls.Add(this.checkBox1);
             this.Controls.Add(this.label1);
             this.MaximizeBox = false;
-            this.MaximumSize = new System.Drawing.Size(250, 180);
+            this.MaximumSize = new System.Drawing.Size(270, 180);
             this.MinimizeBox = false;
-            this.MinimumSize = new System.Drawing.Size(250, 180);
+            this.MinimumSize = new System.Drawing.Size(270, 180);
             this.Name = "Form3";
             this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "Options";

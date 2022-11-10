@@ -23,6 +23,7 @@ namespace SNSPED
         static Form2 newChild = null;
         static Form3 newChild3 = null;
         static Form4 newChild4 = null;
+        static Form5 newChild5 = null;
 
         public static void close_it()
         {
@@ -39,6 +40,11 @@ namespace SNSPED
             newChild4 = null;
         }
 
+        public static void close_it5()
+        {
+            newChild5 = null;
+        }
+
         private void Form1_Load(object sender, EventArgs e)
         {
             for (int i = 0; i < MAX_METASP; i++)
@@ -46,6 +52,7 @@ namespace SNSPED
                 // by default all values should be zero.
                 MetaspriteArray[i] = new Metasprites();
                 MetaspriteArray[i].name = "Metasprite " + i.ToString();
+                MetaspriteArray[i].priority = 2;
             }
             
             listBox1.SelectedIndex = 0;
@@ -96,7 +103,12 @@ namespace SNSPED
         public static int dither_factor;
         public static double dither_db = 0.0;
         public static int dither_adjust = 0;
-        public static bool f3_cb1 = true;
+        public static bool f3_cb1 = true; // use top left as transparent
+
+        public static bool f5_cb1 = true; // true = single, false = multi
+        public static int f5_width = 16; // default
+        public static int f5_height = 16; // default
+        public static bool f5_cb4 = true; // use top left as transparent
 
         public static int[] R_Array = new int[65536];
         public static int[] G_Array = new int[65536];
@@ -108,9 +120,14 @@ namespace SNSPED
         public static int r_val, g_val, b_val, diff_val;
         public static int c_offset, c_offset2;
         public static int image_width, image_height;
-        public static int[] needy_chr_array = new int[65536];
+        public static int[] needy_chr_array = new int[65536]; // 256 * 256 pixels
+        public static int[] needy_chr_array2 = new int[4096]; // 64 * 64 pixels
 
         public static bool undo_ready = false;
+
+        //public static int[] x_array = new int[100];
+        //public static int[] y_array = new int[100];
+        //public static int xy_index;
         
 
 
@@ -372,19 +389,21 @@ namespace SNSPED
                     pixel_x = mouseEventArgs.X;
                     pixel_y = mouseEventArgs.Y;
 
-                    if (pixel_x < 0) pixel_x = -1; // invalid move
-                    if (pixel_x > 319) pixel_x = -1;
-                    if (pixel_y < 0) pixel_y = -1; // invalid move
-                    if (pixel_y > 319) pixel_y = -1;
+                    bool valid_move = true;
 
-                    if ((pixel_x >= 0) && (pixel_y >= 0)) // valid coords
+                    if (pixel_x < 0) valid_move = false; // invalid move
+                    if (pixel_x > 319) valid_move = false;
+                    if (pixel_y < 0) valid_move = false; // invalid move
+                    if (pixel_y > 319) valid_move = false;
+
+                    if (valid_move == true) // valid coords
                     {
                         int delta_x = pixel_x - r_start_x;
-                        if (delta_x < -128) delta_x = -128;
-                        if (delta_x > 128) delta_x = 128;
+                        if (delta_x < -64) delta_x = -64;
+                        if (delta_x > 64) delta_x = 64;
                         int delta_y = pixel_y - r_start_y;
-                        if (delta_y < -128) delta_y = 128;
-                        if (delta_y > 128) delta_y = 128;
+                        if (delta_y < -64) delta_y = -64;
+                        if (delta_y > 64) delta_y = 64;
                         // change in position is now in range
                         // then add to 1 or more sprite
 
@@ -396,21 +415,58 @@ namespace SNSPED
                             int meta_x, meta_y;
                             selected_spr = listBox2.SelectedIndex;
 
+                            //int too_far_L = 0;
+                            //int too_far_R = 0;
+                            //int too_far_U = 0;
+                            //int too_far_D = 0;
+                            int too_much = 0;
+
+                            //test the move
                             foreach (int index in listBox2.SelectedIndices)
                             {
                                 meta_x = MetaspriteArray[selected_meta].rel_x[index];
                                 meta_x = meta_x + delta_x;
-                                if (meta_x < -64) meta_x = -64;
-                                if (meta_x > 64) meta_x = 64;
+                                if (meta_x < -64)
+                                {
+                                    too_much = -64 - meta_x;
+                                    delta_x = delta_x + too_much;
+                                }
+                                if (meta_x > 120)
+                                {
+                                    too_much = 120 - meta_x;
+                                    delta_x = delta_x + too_much;
+                                }
+                                //MetaspriteArray[selected_meta].rel_x[index] = meta_x;
+
+                                meta_y = MetaspriteArray[selected_meta].rel_y[index];
+                                meta_y = meta_y + delta_y;
+                                if (meta_y < -64)
+                                {
+                                    too_much = -64 - meta_y;
+                                    delta_y = delta_y + too_much;
+                                }
+                                if (meta_y > 120)
+                                {
+                                    too_much = 120 - meta_y;
+                                    delta_y = delta_y + too_much;
+                                }
+                                //MetaspriteArray[selected_meta].rel_y[index] = meta_y;
+                            }
+
+
+                            //do the move for real
+                            foreach (int index in listBox2.SelectedIndices)
+                            {
+                                meta_x = MetaspriteArray[selected_meta].rel_x[index];
+                                meta_x = meta_x + delta_x;
                                 MetaspriteArray[selected_meta].rel_x[index] = meta_x;
 
                                 meta_y = MetaspriteArray[selected_meta].rel_y[index];
                                 meta_y = meta_y + delta_y;
-                                if (meta_y < -64) meta_y = -64;
-                                if (meta_y > 64) meta_y = 64;
                                 MetaspriteArray[selected_meta].rel_y[index] = meta_y;
                             }
-                            
+
+
                             // update start position as we go
                             r_start_x = r_start_x + (delta_x * 2);
                             if (r_start_x < 0) r_start_x = 0;
@@ -570,7 +626,7 @@ namespace SNSPED
                 int xx = Screen.PrimaryScreen.Bounds.Width;
                 if (this.Location.X + 970 < xx) // set new form location
                 {
-                    newChild.Location = new Point(this.Location.X + 800, this.Location.Y + 80);
+                    newChild.Location = new Point(this.Location.X + 804, this.Location.Y + 80);
                 }
                 else
                 {
@@ -1067,8 +1123,50 @@ namespace SNSPED
             label19.Text = str;
 
             update_metatile_image();
+
+            update_selected_tile();
         }
 
+
+        private void update_selected_tile()
+        {
+            if (listBox2.SelectedIndex < 0) return;
+            selected_spr = listBox2.SelectedIndex;
+
+            tile_num = MetaspriteArray[selected_meta].tile[selected_spr];
+            //tile_x = 0; tile_y = 0; tile_num = 0; //globals
+            tile_x = tile_num & 0x0f;
+            tile_y = tile_num >> 4;
+            tile_show_num();
+
+            if (newChild != null)
+            {
+                newChild.BringToFront();
+                newChild.update_tile_box();
+            }
+            else
+            {
+                // remember to put the form location as "manual"
+                newChild = new Form2();
+                newChild.Owner = this;
+                int xx = Screen.PrimaryScreen.Bounds.Width;
+                if (this.Location.X + 970 < xx) // set new form location
+                {
+                    newChild.Location = new Point(this.Location.X + 804, this.Location.Y + 80);
+                }
+                else
+                {
+                    newChild.Location = new Point(xx - 170, this.Location.Y);
+                }
+
+                newChild.Show();
+                //update
+            }
+
+            update_tile_image();
+
+            label5.Focus();
+        }
         
 
         private void button8_Click(object sender, EventArgs e)
@@ -1722,6 +1820,9 @@ namespace SNSPED
             selected_spr = 0;
             label19.Text = "00";
             update_metatile_image();
+
+            update_selected_tile();
+
             label5.Focus();
         }
 
@@ -1870,7 +1971,7 @@ namespace SNSPED
 
         private void saveTilesInRangeToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            // remember to put the form location as "manual"
+            // remember to put the form startposition as "manual"
             if (newChild4 != null)
             {
                 newChild4.BringToFront();
@@ -1999,13 +2100,45 @@ namespace SNSPED
         }
 
         private void checkBox4_Click(object sender, EventArgs e)
-        {
+        { // apply large or small
+            update_tile_image(); // white box might need redrawn
             label5.Focus();
         }
 
+        private void smartImportOptionsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // remember to put the form startposition as "manual"
+            if (newChild5 != null)
+            {
+                newChild5.BringToFront();
+            }
+            else
+            {
+                newChild5 = new Form5();
+                newChild5.Owner = this;
+                int xx = Screen.PrimaryScreen.Bounds.Width;
+                if (this.Location.X + 600 < xx) // set new form location
+                {
+                    newChild5.Location = new Point(this.Location.X + 500, this.Location.Y + 80);
+                }
+                else
+                {
+                    newChild5.Location = new Point(xx - 100, this.Location.Y);
+                }
+
+                newChild5.Show();
+                //update
+            }
+        }
+
+        /*private void smartImportTilesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }*/
+
         private void optionsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            // remember to put the form location as "manual"
+            // remember to put the form startposition as "manual"
             if (newChild3 != null)
             {
                 newChild3.BringToFront();
@@ -2042,7 +2175,7 @@ namespace SNSPED
                 {
                     Bitmap import_bmp = new Bitmap(dlg.FileName);
 
-                    if ((import_bmp.Height < 8) || (import_bmp.Width < 8))
+                    if ((import_bmp.Height < 1) || (import_bmp.Width < 2))
                     {
                         MessageBox.Show("Error. File too small?");
                         import_bmp.Dispose();
@@ -2437,11 +2570,24 @@ namespace SNSPED
                     Palettes.pal_b[start_offset] = Palettes.pal_b[0];
 
                     Color trans_color = Color.FromArgb(Palettes.pal_r[0], Palettes.pal_g[0], Palettes.pal_b[0]);
-
+                    
                     image_height = import_bmp.Height;
                     image_width = import_bmp.Width;
 
+                    Color TL_color = import_bmp.GetPixel(0, 0); // top left pixel
+
                     Color temp_color;
+                    Color restore_color = trans_color;
+
+                    if(f3_cb1 == true)
+                    {
+                        // use the top left pixel as the transparent color
+                        temp_color = TL_color;
+                        Palettes.pal_r[start_offset] = TL_color.R;
+                        Palettes.pal_g[start_offset] = TL_color.G;
+                        Palettes.pal_b[start_offset] = TL_color.B;
+                    }
+
                     // copy the bitmap, crop but don't resize
                     // copy pixel by pixel
                     for (int xx = 0; xx < 128; xx++)
@@ -2459,7 +2605,6 @@ namespace SNSPED
                             cool_bmp.SetPixel(xx, yy, temp_color);
                         }
                     }
-
 
                     int final_y, final_x, best_index, chr_index, tile_num, pixel_num;
                     //int temp_set = 0;
@@ -2514,15 +2659,25 @@ namespace SNSPED
                             count++;
                         }
                     }
+                    // int pixel_num = 0;
+                    int starting_x = tile_x * 8;
+                    int starting_y = tile_y * 8;
+                    int starting_tile = (tile_y * 16) + tile_x; // tile #
 
                     // copy image to CHR
                     tile_num = 0;
                     int tile_offset = tile_set * 0x4000;
 
-                    for (int y1 = 0; y1 < 128; y1 += 8) // 16 tiles of 8x8
+                    for (int y1 = 0; y1 < image_height; y1 += 8) // tiles of 8x8
                     {
-                        for (int x1 = 0; x1 < 128; x1 += 8) // ditto
+                        for (int x1 = 0; x1 < image_width; x1 += 8) // ditto
                         {
+                            int x3 = x1 + starting_x;
+                            int y3 = y1 + starting_y;
+                            if (x3 >= 128) continue; // ? what about wrapping around
+                            if (y3 >= 128) continue;
+                            tile_num = (y3 * 2) + (x3 / 8);
+
                             for (int y2 = 0; y2 < 8; y2++) // 8 pixels tall
                             {
                                 for (int x2 = 0; x2 < 8; x2++) // 8 pixels wide
@@ -2542,7 +2697,14 @@ namespace SNSPED
                         }
                     }
 
-                    
+                    if (f3_cb1 == true)
+                    {
+                        // use the top left pixel as the transparent color, restore now
+                        Palettes.pal_r[start_offset] = restore_color.R;
+                        Palettes.pal_g[start_offset] = restore_color.G;
+                        Palettes.pal_b[start_offset] = restore_color.B;
+                    }
+
                     // redraw everything
                     common_update2();
 
@@ -2550,7 +2712,541 @@ namespace SNSPED
                 }
             }
 
+        }
 
+
+        private void smartImportTilesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // 2nd version, it will
+            // import 1 or more image, up to 128x128, 
+            // generate CHR based on existing palette
+            // load to the current tileset
+            // and then create a metasprite(s)
+
+            // load image, generate CHR from it
+            using (OpenFileDialog dlg = new OpenFileDialog())
+            {
+                dlg.Title = "Open Image";
+                dlg.Filter = "Image Files .png .jpg .bmp .gif)|*.png;*.jpg;*.bmp;*.gif|" + "All Files (*.*)|*.*";
+
+                if (dlg.ShowDialog() == DialogResult.OK)
+                {
+
+
+                    Bitmap import_bmp = new Bitmap(dlg.FileName);
+
+                    if ((import_bmp.Height < 8) || (import_bmp.Width < 8))
+                    {
+                        MessageBox.Show("Error. File too small?");
+                        import_bmp.Dispose();
+                        return;
+                    }
+                    if ((import_bmp.Height > 128) || (import_bmp.Width > 128))
+                    {
+                        MessageBox.Show("Error. File too large. 128x128 max.");
+                        import_bmp.Dispose();
+                        return;
+                    }
+
+                    Checkpoint();
+
+                    int num_col, start_offset;
+
+                    num_col = 16;
+                    start_offset = pal_y * 16;
+
+                    // make sure color zero is correct
+                    Palettes.pal_r[start_offset] = Palettes.pal_r[0];
+                    Palettes.pal_g[start_offset] = Palettes.pal_g[0];
+                    Palettes.pal_b[start_offset] = Palettes.pal_b[0];
+
+                    Color trans_color = Color.FromArgb(Palettes.pal_r[0], Palettes.pal_g[0], Palettes.pal_b[0]);
+
+                    image_height = import_bmp.Height;
+                    image_width = import_bmp.Width;
+
+                    Color TL_color = import_bmp.GetPixel(0, 0); // top left pixel
+
+                    Color temp_color;
+                    Color restore_color = trans_color;
+
+                    if (f3_cb1 == true)
+                    {
+                        // use the top left pixel as the transparent color
+                        temp_color = TL_color;
+                        Palettes.pal_r[start_offset] = TL_color.R;
+                        Palettes.pal_g[start_offset] = TL_color.G;
+                        Palettes.pal_b[start_offset] = TL_color.B;
+                    }
+
+                    // copy the bitmap, crop but don't resize
+                    // copy pixel by pixel
+                    for (int xx = 0; xx < 128; xx++)
+                    {
+                        for (int yy = 0; yy < 128; yy++)
+                        {
+                            if ((xx < image_width) && (yy < image_height))
+                            {
+                                temp_color = import_bmp.GetPixel(xx, yy);
+                            }
+                            else
+                            {
+                                temp_color = trans_color;
+                            }
+                            cool_bmp.SetPixel(xx, yy, temp_color);
+                        }
+                    }
+
+                    int final_y, final_x, best_index, chr_index, tile_num, pixel_num;
+                    int count = 0;
+
+                    // get best color for each pixel
+                    // copied to int array, needy_chr_array
+
+
+                    for (int y = 0; y < 256; y++)
+                    {
+                        for (int x = 0; x < 256; x++)
+                        {
+                            if ((x >= image_width) || (y >= image_height))
+                            {
+                                needy_chr_array[count] = 0;
+                            }
+                            else
+                            {
+                                // get the pixel and find its best color
+                                temp_color = cool_bmp.GetPixel(x, y);
+
+                                // no dither
+
+                                best_index = Best_Color(temp_color, num_col, start_offset);
+                                needy_chr_array[count] = best_index;
+                            }
+
+                            count++;
+                        }
+                    }
+
+                    int SM_meta_size = 8;
+                    if ((spr_size_mode == SIZES_16_32) || (spr_size_mode == SIZES_16_64))
+                    {
+                        SM_meta_size = 16;
+                    }
+                    if(spr_size_mode == SIZES_32_64)
+                    {
+                        SM_meta_size = 32;
+                    }
+                    
+
+                    int LG_meta_size = 16;
+                    if((spr_size_mode == SIZES_8_32) || (spr_size_mode == SIZES_16_32))
+                    {
+                        LG_meta_size = 32;
+                    }
+                    if((spr_size_mode == SIZES_8_64) || (spr_size_mode == SIZES_16_64) || (spr_size_mode == SIZES_32_64))
+                    {
+                        LG_meta_size = 64;
+                    }
+                    int Real_meta_size = LG_meta_size;
+
+                    bool Is_Small = false;
+                    if ((image_width <= SM_meta_size) && (image_height <= SM_meta_size))
+                    {
+                        Is_Small = true;
+                        Real_meta_size = SM_meta_size;
+                    }
+                    
+
+                    int starting_x = tile_x * 8;
+                    int starting_y = tile_y * 8;
+                    int starting_tile = (tile_y * 16) + tile_x; // tile #
+
+                    int num_tiles_wide, num_tiles_high; // per metasprite
+                    // copy image to CHR
+                    tile_num = 0;
+                    int tile_offset = tile_set * 0x4000;
+
+                    // create a metasprite
+
+                    if (f5_cb1 == true)
+                    { // single metasprite
+                        // use the entire thing as a single metasprite
+                        num_tiles_wide = (image_width + LG_meta_size - 1) / LG_meta_size; // round up
+                        if (num_tiles_wide < 1) num_tiles_wide = 1;
+                        image_width = num_tiles_wide * LG_meta_size;
+                        num_tiles_high = (image_height + LG_meta_size - 1) / LG_meta_size;
+                        if (num_tiles_high < 1) num_tiles_high = 1;
+                        image_height = num_tiles_high * LG_meta_size;
+
+                        // go tile by tile in 8x8 chunks
+
+                        for (int y1 = 0; y1 < image_height; y1 += 8)
+                        {
+                            for (int x1 = 0; x1 < image_width; x1 += 8)
+                            {
+                                int x3 = x1 + starting_x;
+                                int y3 = y1 + starting_y;
+                                if (x3 >= 128) continue; // ? what about wrapping around
+                                if (y3 >= 128) continue;
+
+                                tile_num = (y3 * 2) + (x3 / 8);
+
+                                for (int y2 = 0; y2 < 8; y2++) // each tile
+                                {
+                                    for (int x2 = 0; x2 < 8; x2++)
+                                    {
+                                        final_x = x1 + x2;
+                                        final_y = y1 + y2;
+
+                                        pixel_num = (final_y * 256) + final_x;
+                                        // 64 bytes per tile
+                                        chr_index = (tile_num * 64) + (y2 * 8) + x2;
+                                        chr_index += tile_offset;
+
+                                        Tiles.Tile_Arrays[chr_index] = needy_chr_array[pixel_num];
+
+                                    }
+                                }
+                            } 
+                            // 
+                        }
+                        // blank the current metasprite
+                        MetaspriteArray[selected_meta].sprite_count = 0;
+                        listBox2.Items.Clear();
+                        
+                        selected_spr = 0;
+                        label19.Text = "00";
+                        
+                        // now create a metasprite
+                        int offset = 0;
+                        int meta_x2 = 0;
+                        int meta_y2 = 0;
+                        
+                        offset = 0;
+                        count = 0;
+                        
+                        int cur_tile = starting_tile;
+                        int meta_size2 = LG_meta_size / 8;
+                        
+                        for (int y1 = 0; y1 < num_tiles_high; y1++)
+                        {
+                            cur_tile = starting_tile + (y1 * meta_size2 * 16);
+                            if (cur_tile > 255) break;
+
+                            for (int x1 = 0; x1 < num_tiles_wide; x1++)
+                            {
+                                meta_x2 = x1 * LG_meta_size;
+                                meta_y2 = y1 * LG_meta_size;
+
+                                // skip blank tiles
+                                if (check_if_blank(meta_x2, meta_y2, Real_meta_size, Real_meta_size) == true) goto End_Of_Loop;
+
+                                MetaspriteArray[selected_meta].rel_x[offset] = meta_x2;
+                                MetaspriteArray[selected_meta].rel_y[offset] = meta_y2;
+                                MetaspriteArray[selected_meta].tile[offset] = cur_tile;
+                                MetaspriteArray[selected_meta].set[offset] = tile_set;
+                                MetaspriteArray[selected_meta].h_flip[offset] = 0;
+                                MetaspriteArray[selected_meta].v_flip[offset] = 0;
+                                MetaspriteArray[selected_meta].size[offset] = 1; // large
+                                if(Is_Small == true)
+                                {
+                                    MetaspriteArray[selected_meta].size[offset] = 0; // small
+                                }
+                                MetaspriteArray[selected_meta].palette[offset] = pal_y;
+
+                                // add to the list box
+                                string str = "tile ";
+                                if (cur_tile < 16) str = str + "0";
+                                str = str + cur_tile.ToString("X"); //hex
+                                str = str + "  set=" + tile_set.ToString();
+                                str = str + "   x=" + meta_x2.ToString() + "   y=" + meta_y2.ToString();
+                                str = str + "   pal=" + MetaspriteArray[selected_meta].palette[offset].ToString();
+                                str = str + "   H=" + MetaspriteArray[selected_meta].h_flip[offset].ToString();
+                                str = str + "   V=" + MetaspriteArray[selected_meta].v_flip[offset].ToString();
+                                str = str + "   Sz=" + MetaspriteArray[selected_meta].size[offset].ToString();
+
+                                listBox2.Items.Add(str);
+
+                                offset++;
+                                count++;
+
+                                End_Of_Loop:
+
+                                int save_c_t = cur_tile;
+                                cur_tile += meta_size2;
+                                if(cur_tile > 255) break;
+                                if ((cur_tile & 0x10) != (save_c_t & 0x10)) break; // no wrap
+                                
+                            }
+                        }
+                        MetaspriteArray[selected_meta].sprite_count = count;
+
+                        selected_meta++; // will be undone later
+
+                        listBox2.ClearSelected();
+                        listBox2.Refresh();
+                        textBox5.Text = pal_y.ToString();
+                        label19.Text = "00"; // which sprite selected, default
+                    }
+
+
+                    // *************************************************
+                    // multi metasprites imported together
+                    // *************************************************
+
+
+                    else
+                    { // multi sprites, sprite sheet
+                        // if sizes smaller than LG_meta_size, then pad with blanks.
+
+                        starting_x = tile_x * 8; // selected tile in the tileset
+                        starting_y = tile_y * 8;
+                        starting_tile = (tile_y * 16) + tile_x; // tile #
+
+                        int num_x_chop = image_width / f5_width;
+                        int num_y_chop = image_height / f5_height;
+                        if (num_x_chop < 1) num_x_chop = 1;
+                        if (num_y_chop < 1) num_y_chop = 1;
+                        int chop_width = f5_width; // ?
+                        int chop_height = f5_height; // ?
+
+                        num_tiles_wide = chop_width / LG_meta_size; // tiles per metasprite
+                        if (num_tiles_wide < 1) num_tiles_wide = 1;
+                        int image_width2 = num_tiles_wide * LG_meta_size; // pad upward
+
+                        num_tiles_high = chop_height / LG_meta_size;
+                        if (num_tiles_high < 1) num_tiles_high = 1;
+                        int image_height2 = num_tiles_high * LG_meta_size; // pad upward
+
+                        int meta_x_offset = 0; // pixel shift to start chop
+                        int meta_y_offset = 0;
+
+                        // what if small size sprite will do
+                        // if f5 width is <= sm tile size, then use small instead of large
+
+                        // blank the listbox
+                        listBox2.Items.Clear();
+
+                        selected_spr = 0;
+                        label19.Text = "00";
+
+
+                        for (int meta_y1 = 0; meta_y1 < num_y_chop; meta_y1++)
+                        {
+                            meta_x_offset = 0;
+                            for (int meta_x1 = 0; meta_x1 < num_x_chop; meta_x1++)
+                            {
+                                starting_tile = (starting_y * 2) + (starting_x / 8);
+
+                                // blank temp array
+                                for (int i = 0; i < 4096; i++)
+                                {
+                                    needy_chr_array2[i] = 0;
+                                }
+
+                                // copy the current chopped metasprite to a temp
+                                for (int y1 = 0; y1 < f5_height; y1++)
+                                {
+                                    for (int x1 = 0; x1 < f5_width; x1++)
+                                    {
+                                        int cur_pix = (y1 * 64) + x1;
+                                        int cur_pix2 = ((y1 + meta_y_offset) * 256) + x1 + meta_x_offset;
+                                        needy_chr_array2[cur_pix] = needy_chr_array[cur_pix2];
+                                        // 64x64 vs 256x256 sized arrays
+                                    }
+                                }
+                                meta_x_offset += f5_width;
+
+                                // copy those tiles to the tileset
+                                // (user error won't be corrected if it doesn't fit)
+                                for (int y1 = 0; y1 < image_height2; y1 += 8)
+                                {
+                                    for (int x1 = 0; x1 < image_width2; x1 += 8)
+                                    {
+                                        int x3 = x1 + starting_x;
+                                        int y3 = y1 + starting_y;
+                                        if (x3 >= 128) continue; // ? what about wrapping around
+                                        if (y3 >= 128) continue;
+
+                                        tile_num = (y3 * 2) + (x3 / 8);
+
+                                        for (int y2 = 0; y2 < 8; y2++) // each tile
+                                        {
+                                            for (int x2 = 0; x2 < 8; x2++)
+                                            {
+                                                final_x = x1 + x2;
+                                                final_y = y1 + y2;
+
+                                                pixel_num = (final_y * 64) + final_x; // 64 was 256 when was a larger array
+                                                // 64 bytes per tile
+                                                chr_index = (tile_num * 64) + (y2 * 8) + x2;
+                                                if (chr_index >= 16384) break;
+                                                chr_index += tile_offset;
+
+                                                Tiles.Tile_Arrays[chr_index] = needy_chr_array2[pixel_num];
+
+                                            }
+                                        }
+                                    }
+                                    // 
+                                }
+                                starting_x += image_width2;
+                                if(starting_x >= 128)
+                                {
+                                    starting_x = 0;
+                                    starting_y += image_height2;
+                                }
+                                
+
+                                // blank the current metasprite
+                                //MetaspriteArray[selected_meta].sprite_count = 0;
+                                
+                                // -------------------------- //
+                                //  now create a metasprite   //
+                                // -------------------------- //
+
+                                int offset = 0;
+                                int meta_x2 = 0;
+                                int meta_y2 = 0;
+                                
+
+                                offset = 0;
+                                count = 0;
+
+                                int cur_tile = starting_tile;
+                                int meta_size2 = LG_meta_size / 8;
+
+                                for (int y1 = 0; y1 < num_tiles_high; y1++)
+                                {
+                                    cur_tile = starting_tile + (y1 * meta_size2 * 16);
+                                    if (cur_tile > 255) break;
+
+                                    for (int x1 = 0; x1 < num_tiles_wide; x1++)
+                                    {
+                                        meta_x2 = x1 * LG_meta_size;
+                                        meta_y2 = y1 * LG_meta_size;
+
+                                        // skip blank tiles
+                                        if (check_if_blank2(meta_x2, meta_y2, Real_meta_size, Real_meta_size) == true) goto End_Of_Loop2;
+                                        
+                                        MetaspriteArray[selected_meta].sprite_count = 0; // blank it
+
+                                        MetaspriteArray[selected_meta].rel_x[offset] = meta_x2;
+                                        MetaspriteArray[selected_meta].rel_y[offset] = meta_y2;
+                                        MetaspriteArray[selected_meta].tile[offset] = cur_tile;
+                                        MetaspriteArray[selected_meta].set[offset] = tile_set;
+                                        MetaspriteArray[selected_meta].h_flip[offset] = 0;
+                                        MetaspriteArray[selected_meta].v_flip[offset] = 0;
+                                        MetaspriteArray[selected_meta].size[offset] = 1; // large
+                                        if (Is_Small == true)
+                                        {
+                                            MetaspriteArray[selected_meta].size[offset] = 0; // small
+                                        }
+                                        MetaspriteArray[selected_meta].palette[offset] = pal_y;
+
+                                        offset++;
+                                        count++;
+
+                                    End_Of_Loop2:
+
+                                        int save_c_t = cur_tile;
+                                        cur_tile += meta_size2;
+                                        if (cur_tile > 255) break;
+                                        if ((cur_tile & 0x10) != (save_c_t & 0x10)) break; // no wrap
+
+                                    }
+                                }
+                                MetaspriteArray[selected_meta].sprite_count = count;
+
+                                if(count != 0)
+                                {
+                                    selected_meta++;
+                                    if (selected_meta >= MAX_METASP)
+                                    {
+                                        goto Oh_Crap; // woops, that's not good
+                                    }
+                                }
+                                
+                                if (starting_y >= 128) goto Oh_Crap; // woops, that's not good
+                            }
+                            meta_y_offset += f5_height;
+
+                        }
+
+                    }
+
+                Oh_Crap:
+
+                    if (selected_meta > 0) selected_meta--;
+
+                    if (f3_cb1 == true)
+                    {
+                        // use the top left pixel as the transparent color, restore now
+                        Palettes.pal_r[start_offset] = restore_color.R;
+                        Palettes.pal_g[start_offset] = restore_color.G;
+                        Palettes.pal_b[start_offset] = restore_color.B;
+                    }
+
+                    // redraw everything
+                    common_update2();
+                    
+                    import_bmp.Dispose();
+
+                    
+                    listBox1.SelectedIndex = -1; // unselected
+                    listBox1.SelectedIndex = selected_meta; // reselected
+                    // this should trigger an event to redraw the list
+                    // and also the metasprite itself
+
+                }
+            }
+        }
+
+
+        public bool check_if_blank(int x_offset, int y_offset, int x_size, int y_size)
+        {
+            
+            bool pixel_found = false;
+
+            for(int y1 = y_offset; y1 < (y_offset + y_size); y1++)
+            {
+                for (int x1 = x_offset; x1 < (x_offset + x_size); x1++)
+                {
+                    int cur_pixel = (y1 * 256) + x1;
+                    if (cur_pixel >= 65536) break;
+                    if (needy_chr_array[cur_pixel] != 0)
+                    {
+                        pixel_found = true;
+                        break;
+                    }
+                }
+            }
+
+            if (pixel_found == true) return false;
+            return true;
+        }
+
+        public bool check_if_blank2(int x_offset, int y_offset, int x_size, int y_size)
+        {
+
+            bool pixel_found = false;
+
+            for (int y1 = y_offset; y1 < (y_offset + y_size); y1++)
+            {
+                for (int x1 = x_offset; x1 < (x_offset + x_size); x1++)
+                {
+                    int cur_pixel = (y1 * 64) + x1;
+                    if (cur_pixel >= 4096) break;
+                    if (needy_chr_array2[cur_pixel] != 0)
+                    {
+                        pixel_found = true;
+                        break;
+                    }
+                }
+            }
+
+            if (pixel_found == true) return false;
+            return true;
         }
 
 
@@ -2592,19 +3288,115 @@ namespace SNSPED
                 g.DrawImage(image_tiles, 0, 0, 256, 256);
             } // standard resize of bmp was blurry, this makes it sharp
 
-            //put a white box around the selected tile
-            int pos_x = 0; int pos_y = 0;
-            for (int i = 0; i < 16; i++)
+
+            //make sure white selection box size is correct
+            int boxsize = 16;
+            if(spr_size_mode == SIZES_8_16)
             {
-                pos_y = (tile_y * 16) - 1; // it's doing a weird off by 1 thing
-                if (pos_y < 0) pos_y = 0; // so have to adjust by 1, and not == -1
-                pos_x = (tile_x * 16) - 1;
-                if (pos_x < 0) pos_x = 0;
-                temp_bmp.SetPixel(pos_x + i, pos_y, Color.White);
-                temp_bmp.SetPixel(pos_x, pos_y + i, Color.White);
-                temp_bmp.SetPixel(pos_x + i, pos_y + 15, Color.White);
-                temp_bmp.SetPixel(pos_x + 15, pos_y + i, Color.White);
+                if(checkBox4.Checked == false)
+                {
+                    boxsize = 16;
+                }
+                else
+                {
+                    boxsize = 32;
+                }
             }
+            else if(spr_size_mode == SIZES_8_32)
+            {
+                if (checkBox4.Checked == false)
+                {
+                    boxsize = 16;
+                }
+                else
+                {
+                    boxsize = 64;
+                }
+            }
+            else if (spr_size_mode == SIZES_8_64)
+            {
+                if (checkBox4.Checked == false)
+                {
+                    boxsize = 16;
+                }
+                else
+                {
+                    boxsize = 128;
+                }
+            }
+            else if (spr_size_mode == SIZES_16_32)
+            {
+                if (checkBox4.Checked == false)
+                {
+                    boxsize = 32;
+                }
+                else
+                {
+                    boxsize = 64;
+                }
+            }
+            else if (spr_size_mode == SIZES_16_64)
+            {
+                if (checkBox4.Checked == false)
+                {
+                    boxsize = 32;
+                }
+                else
+                {
+                    boxsize = 128;
+                }
+            }
+            else // 32 and 64
+            {
+                if (checkBox4.Checked == false)
+                {
+                    boxsize = 64;
+                }
+                else
+                {
+                    boxsize = 128;
+                }
+            }
+
+            //put a white box around the selected tile
+            int pos_x, pos_x2, pos_y, pos_y2; // L, R, T, B
+            pos_y = (tile_y * 16) - 1; // it's doing a weird off by 1 thing
+            if (pos_y < 0) pos_y = 0; // so have to adjust by 1, and not == -1
+            pos_x = (tile_x * 16) - 1;
+            if (pos_x < 0) pos_x = 0;
+            pos_x2 = pos_x + boxsize - 1;
+            pos_y2 = pos_y + boxsize - 1;
+            for(int i = 0; i < boxsize; i++)
+            {
+                //left edge
+                if (pos_y + i >= 256) break;
+                temp_bmp.SetPixel(pos_x, pos_y + i, Color.White);
+            }
+            for (int i = 0; i < boxsize; i++)
+            {
+                //top edge
+                if (pos_x + i >= 256) break;
+                temp_bmp.SetPixel(pos_x + i, pos_y, Color.White);
+            }
+            if(pos_x2 < 256)
+            {
+                for (int i = 0; i < boxsize; i++)
+                {
+                    //right edge
+                    if (pos_y + i >= 256) break;
+                    temp_bmp.SetPixel(pos_x2, pos_y + i, Color.White);
+                }
+            }
+            if(pos_y2 < 256)
+            {
+                for (int i = 0; i < boxsize; i++)
+                {
+                    //top edge
+                    if (pos_x + i >= 256) break;
+                    temp_bmp.SetPixel(pos_x + i, pos_y2, Color.White);
+                }
+            }
+
             pictureBox2.Image = temp_bmp;
             pictureBox2.Refresh();
             
@@ -2801,26 +3593,30 @@ namespace SNSPED
                     }
                     
                     //now draw the highlight box
-                    for (int i = 0; i < sp_size; i++)
+                    if((y_min < 319) && (x_min < 319))
                     {
-                        if(x_min + i < 319)
+                        for (int i = 0; i < sp_size; i++)
                         {
-                            temp_bmp2.SetPixel(x_min + i, y_min, Fred2);
-                            if(y_min + sp_size < 319)
+                            if (x_min + i < 319)
                             {
-                                temp_bmp2.SetPixel(x_min + i, y_min + sp_size, Fred2);
+                                temp_bmp2.SetPixel(x_min + i, y_min, Fred2);
+                                if (y_min + sp_size < 319)
+                                {
+                                    temp_bmp2.SetPixel(x_min + i, y_min + sp_size, Fred2);
+                                }
+
                             }
-                            
-                        }
-                        if (y_min + i < 319)
-                        {
-                            temp_bmp2.SetPixel(x_min, y_min + i, Fred2);
-                            if (x_min + sp_size < 319)
+                            if (y_min + i < 319)
                             {
-                                temp_bmp2.SetPixel(x_min + sp_size, y_min + i, Fred2);
+                                temp_bmp2.SetPixel(x_min, y_min + i, Fred2);
+                                if (x_min + sp_size < 319)
+                                {
+                                    temp_bmp2.SetPixel(x_min + sp_size, y_min + i, Fred2);
+                                }
                             }
                         }
                     }
+                    
                 }
             }
             
@@ -3066,6 +3862,8 @@ namespace SNSPED
 
         private void draw_1_std(int xx, int yy, int tile, int pal)
         {
+            if((xx > 311) || (yy > 311)) return;
+            
             int offset = tile * 8 * 8; // tile 0-511
             for (int j = 0; j < 8; j++)
             {
@@ -3088,6 +3886,8 @@ namespace SNSPED
 
         private void draw_1_vflip(int xx, int yy, int tile, int pal)
         {
+            if ((xx > 311) || (yy > 311)) return;
+
             int offset = tile * 8 * 8; // tile 0-511
             for (int j = 7; j >= 0; j--)
             {
@@ -3110,6 +3910,8 @@ namespace SNSPED
 
         private void draw_1_hflip(int xx, int yy, int tile, int pal)
         {
+            if ((xx > 311) || (yy > 311)) return;
+
             int offset = tile * 8 * 8; // tile 0-511
             for (int j = 0; j < 8; j++)
             {
@@ -3132,6 +3934,8 @@ namespace SNSPED
 
         private void draw_1_Hvflip(int xx, int yy, int tile, int pal)
         {
+            if ((xx > 311) || (yy > 311)) return;
+
             int offset = tile * 8 * 8; // tile 0-511
             for (int j = 7; j >= 0; j--)
             {

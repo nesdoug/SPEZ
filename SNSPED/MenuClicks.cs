@@ -532,22 +532,22 @@ namespace SNSPED
                         {
                             default:
                             case SIZES_8_16:
-                                sw.Write("8 x 16\r\n");
+                                sw.Write("8 x 8 and 16 x 16\r\n");
                                 break;
                             case SIZES_8_32:
-                                sw.Write("8 x 32\r\n");
+                                sw.Write("8 x 8 and 32 x 32\r\n");
                                 break;
                             case SIZES_8_64:
-                                sw.Write("8 x 64\r\n");
+                                sw.Write("8 x 8 and 64 x 64\r\n");
                                 break;
                             case SIZES_16_32:
-                                sw.Write("16 x 32\r\n");
+                                sw.Write("16 x 16 and 32 x 32\r\n");
                                 break;
                             case SIZES_16_64:
-                                sw.Write("16 x 64\r\n");
+                                sw.Write("16 x 16 and 64 x 64\r\n");
                                 break;
                             case SIZES_32_64:
-                                sw.Write("32 x 64\r\n");
+                                sw.Write("32 x 32 and 64 x 64\r\n");
                                 break;
                         }
 
@@ -622,22 +622,22 @@ namespace SNSPED
                     {
                         default:
                         case SIZES_8_16:
-                            sw.Write("8 x 16\r\n");
+                            sw.Write("8 x 8 and 16 x 16\r\n");
                             break;
                         case SIZES_8_32:
-                            sw.Write("8 x 32\r\n");
+                            sw.Write("8 x 8 and 32 x 32\r\n");
                             break;
                         case SIZES_8_64:
-                            sw.Write("8 x 64\r\n");
+                            sw.Write("8 x 8 and 64 x 64\r\n");
                             break;
                         case SIZES_16_32:
-                            sw.Write("16 x 32\r\n");
+                            sw.Write("16 x 16 and 32 x 32\r\n");
                             break;
                         case SIZES_16_64:
-                            sw.Write("16 x 64\r\n");
+                            sw.Write("16 x 16 and 64 x 64\r\n");
                             break;
                         case SIZES_32_64:
-                            sw.Write("32 x 64\r\n");
+                            sw.Write("32 x 32 and 64 x 64\r\n");
                             break;
                     }
 
@@ -1573,6 +1573,7 @@ namespace SNSPED
             rebuild_spr_list();
             listBox2.SelectedIndex = selected_spr;
             update_metatile_image();
+            update_tile_image(); // white box might need redrawn
 
             label20.Text = "Sprite sizes 8 and 16";
         }
@@ -1591,6 +1592,7 @@ namespace SNSPED
             rebuild_spr_list();
             listBox2.SelectedIndex = selected_spr;
             update_metatile_image();
+            update_tile_image(); // white box might need redrawn
 
             label20.Text = "Sprite sizes 8 and 32";
         }
@@ -1609,6 +1611,7 @@ namespace SNSPED
             rebuild_spr_list();
             listBox2.SelectedIndex = selected_spr;
             update_metatile_image();
+            update_tile_image(); // white box might need redrawn
 
             label20.Text = "Sprite sizes 8 and 64";
         }
@@ -1627,6 +1630,7 @@ namespace SNSPED
             rebuild_spr_list();
             listBox2.SelectedIndex = selected_spr;
             update_metatile_image();
+            update_tile_image(); // white box might need redrawn
 
             label20.Text = "Sprite sizes 16 and 32";
         }
@@ -1645,6 +1649,7 @@ namespace SNSPED
             rebuild_spr_list();
             listBox2.SelectedIndex = selected_spr;
             update_metatile_image();
+            update_tile_image(); // white box might need redrawn
 
             label20.Text = "Sprite sizes 16 and 64";
         }
@@ -1663,6 +1668,7 @@ namespace SNSPED
             rebuild_spr_list();
             listBox2.SelectedIndex = selected_spr;
             update_metatile_image();
+            update_tile_image(); // white box might need redrawn
 
             label20.Text = "Sprite sizes 32 and 64";
         }
