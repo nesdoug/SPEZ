@@ -1,16 +1,14 @@
 ﻿NOTES
 
+-done.
+
+
 
 FUTURE TODOS - 
--copy / paste / place multiple tiles at once (future version ?)
-(to rearrange the tiles more quickly)
-(or place multiple at once into meta ?)
-(this conflicts with the current click = box of size)
-(need seperate mode for it ?)
-
 -hitbox (future version ?)
 -center point / flip point
 (2nd hitbox ?)
+-write asm code to match it
 
 
 
@@ -27,3 +25,11 @@ FUTURE TODOS -
 -changed default priority to 2 (done)
 -allow import palette as small as 2x1 pixels
 -importing images will only blank the part of the tileset it needs
+-multi-tile editing (flip, shift, cut/paste, etc) ("MANY" mode)
+-added cut (copy then delete)
+-a = select all
+-x = copy then delete
+-change vert flip to y and paste to v
+-change white box to 8x8 again ("ONE" mode)
+-placing will place all of the selected tiles (MANY MODE)
+-flipped (etc) will flip entire thing (MANY MODE)

@@ -1,5 +1,5 @@
-SPEZ - SNES Sprite Editor ver 2.1
-Nov 9, 2022
+SPEZ - SNES Sprite Editor ver 2.2
+Nov 16, 2022
 .NET 4.5.2 (works with MONO on non-Windows systems)
 For SNES game development.
 Freeware by Doug Fraker
@@ -46,6 +46,11 @@ version history
 	- allow small images to be imported as palettes
 	  (as small as 2x1) to allow 16x1 images as a palette
 	- importing images only blanks the tiles it needs
+2.2 - changed key commands, and added some...
+    - a=select all, x=cut, v=paste, y=vert flip
+	- multi-tile select mode added (= default)
+	- allows cut/paste/flip/etc with multiple tiles
+	- and adding multiple tiles into metasprite at once
 
 Note, the RLE is a special compression format that I wrote, 
 specifically for SNES maps (but could be used for tiles).
@@ -157,14 +162,16 @@ Tilesets
 --------
 2 sets for 4bpp, (same amount SNES can use at once)
 
-Left/Right click to open an editing box.
-Numberpad 2,4,6,8 to move to adjacent tile.
-C - copy
-P - paste.
+Left click to open an editing box.
+(see Key Commands below)
+the "MANY" checkbox is for multi-tile editing mode
+(uncheck for original "ONE" tile editing mode)
+-you can now do cut/paste/flip/shift/etc with
+multiple tiles selected at once.
+-you can add all selected tiles to the metasprite
+Left-Click and drag over multiple tiles from
+top left to bottom right, to select many.
 
-Note - you can save time by L-clicking in the sprite
-window and quickly changing tiles with the numberpad
-2,4,6,8 buttons. (assuming their tiles are adjacent).
 
 
 
@@ -172,17 +179,21 @@ Tile Edit Box
 -------------
 Left click - place the currently selected color on the grid
 Right click - get the color under the pointer
-Numberpad 2,4,6,8 to move to adjacent tile.
+
+Key Commands
+------------
+Numberpad 2,4,6,8 to move to adjacent tile (One Tile Mode Only)
 Arrow keys to shift the image.
 F - fills a tile with selected color
 H - flip horizontal (notice the symmetric shape of the letter W)
-V - flip vertical (notice the symmetric shape of the letter E)
+Y - flip vertical (notice the symmetric shape of the letter E)
 R - rotate clockwise
 L - rotate counter clockwise
 Delete - fills with color 0 (transparent)
 C - copy
-P - paste.
-
+X - cut
+V - paste.
+A - select all tiles
 
 
 Palette
@@ -227,6 +238,19 @@ keep them separate from other bit depths (such as 2 or 3 or 8).
 File/Export Image saves the current view on the Tilemap as .png .bmp or .jpg
 
 
+
+WHAT IS THAT?
+-------------
+-On the left side, the palette box is for changing the palette
+of a sprite already in the list (and selected) 
+-Apply H, Apply V, Apply Large will do those transformations
+to any future sprite added... I guess Apply Large only really
+works in the old One Tile Mode, as the Multi Tile Mode will
+guess what you want based on how many tiles selected.
+-H Flip, V Flip, Resize, (arrow) buttons will modify a
+sprite that is already on the list (and selected) 
+-select all, delete selected, delete all buttons applies to
+the sprite list, as does the "reorder" arrow buttons
 
 
 native .SPZ file format

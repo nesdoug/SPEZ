@@ -197,27 +197,39 @@ namespace SNSPED
             }
             else if (e.KeyCode == Keys.NumPad2) // down
             {
-                if (Form1.tile_y < 15) Form1.tile_y++;
-                Form1.tile_num = (Form1.tile_y * 16) + Form1.tile_x;
-                common_update();
+                if (Form1.BIG_EDIT_MODE == false)
+                {
+                    if (Form1.tile_y < 15) Form1.tile_y++;
+                    Form1.tile_num = (Form1.tile_y * 16) + Form1.tile_x;
+                    common_update();
+                }
             }
             else if (e.KeyCode == Keys.NumPad4) // left
             {
-                if (Form1.tile_x > 0) Form1.tile_x--;
-                Form1.tile_num = (Form1.tile_y * 16) + Form1.tile_x;
-                common_update();
+                if (Form1.BIG_EDIT_MODE == false)
+                {
+                    if (Form1.tile_x > 0) Form1.tile_x--;
+                    Form1.tile_num = (Form1.tile_y * 16) + Form1.tile_x;
+                    common_update();
+                }
             }
             else if (e.KeyCode == Keys.NumPad6) // right
             {
-                if (Form1.tile_x < 15) Form1.tile_x++;
-                Form1.tile_num = (Form1.tile_y * 16) + Form1.tile_x;
-                common_update();
+                if (Form1.BIG_EDIT_MODE == false)
+                {
+                    if (Form1.tile_x < 15) Form1.tile_x++;
+                    Form1.tile_num = (Form1.tile_y * 16) + Form1.tile_x;
+                    common_update();
+                }
             }
             else if (e.KeyCode == Keys.NumPad8) // up
             {
-                if (Form1.tile_y > 0) Form1.tile_y--;
-                Form1.tile_num = (Form1.tile_y * 16) + Form1.tile_x;
-                common_update();
+                if (Form1.BIG_EDIT_MODE == false)
+                {
+                    if (Form1.tile_y > 0) Form1.tile_y--;
+                    Form1.tile_num = (Form1.tile_y * 16) + Form1.tile_x;
+                    common_update();
+                }
             }
             else if (e.KeyCode == Keys.H)
             {
@@ -225,7 +237,7 @@ namespace SNSPED
                 Tiles.tile_h_flip();
                 common_update();
             }
-            else if (e.KeyCode == Keys.V)
+            else if (e.KeyCode == Keys.Y)
             {
                 f.Checkpoint();
                 Tiles.tile_v_flip();
@@ -254,7 +266,14 @@ namespace SNSPED
                 Tiles.tile_copy();
                 common_update();
             }
-            else if (e.KeyCode == Keys.P)
+            else if (e.KeyCode == Keys.X)
+            {
+                Tiles.tile_copy();
+                f.Checkpoint();
+                Tiles.tile_delete();
+                common_update();
+            }
+            else if (e.KeyCode == Keys.V)
             {
                 f.Checkpoint();
                 Tiles.tile_paste();
@@ -278,7 +297,12 @@ namespace SNSPED
             {
                 f.Do_Undo();
             }
-
+            else if (e.KeyCode == Keys.A)
+            {
+                Tiles.Select_All();
+                f.tile_show_num();
+                common_update();
+            }
         }
 
 

@@ -125,10 +125,12 @@ namespace SNSPED
 
         public static bool undo_ready = false;
 
-        //public static int[] x_array = new int[100];
-        //public static int[] y_array = new int[100];
-        //public static int xy_index;
-        
+        public static bool BIG_EDIT_MODE = true;
+        public static int BE_x1 = 0; // in tiles 
+        public static int BE_x2 = 1; // x1,y1 = top left           
+        public static int BE_y1 = 0; // x2,y2 = bottom right
+        public static int BE_y2 = 1;
+        public static int BE_x_cur, BE_y_cur; // do we need to redraw the tileset box?
 
 
         public readonly int[,] BAYER_MATRIX =
@@ -215,9 +217,7 @@ namespace SNSPED
 
             common_update2();
             // update the tile edit box and
-            //update_tile_image();
-            //update_metatile_image();
-
+            
             undo_ready = false;
         }
 
@@ -415,10 +415,6 @@ namespace SNSPED
                             int meta_x, meta_y;
                             selected_spr = listBox2.SelectedIndex;
 
-                            //int too_far_L = 0;
-                            //int too_far_R = 0;
-                            //int too_far_U = 0;
-                            //int too_far_D = 0;
                             int too_much = 0;
 
                             //test the move
@@ -436,8 +432,7 @@ namespace SNSPED
                                     too_much = 120 - meta_x;
                                     delta_x = delta_x + too_much;
                                 }
-                                //MetaspriteArray[selected_meta].rel_x[index] = meta_x;
-
+                                
                                 meta_y = MetaspriteArray[selected_meta].rel_y[index];
                                 meta_y = meta_y + delta_y;
                                 if (meta_y < -64)
@@ -450,7 +445,7 @@ namespace SNSPED
                                     too_much = 120 - meta_y;
                                     delta_y = delta_y + too_much;
                                 }
-                                //MetaspriteArray[selected_meta].rel_y[index] = meta_y;
+                                
                             }
 
 
@@ -488,7 +483,7 @@ namespace SNSPED
 
 
         private void pictureBox1_Click(object sender, EventArgs e)
-        { // main metatile editor, top left
+        { // main metatile editor, top left -- add a sprite to the list
             if(disable_map_click == 1)
             {
                 disable_map_click = 0;
@@ -497,10 +492,12 @@ namespace SNSPED
 
             // left click = drop a tile, right = shift selected tile
             // click the tile in the tile editor to change which selected
-            int meta_x, meta_y, meta_x2, meta_y2, count, offset;
+            int meta_x, meta_y, meta_x2, meta_y2, offset;
             
             if (MetaspriteArray[selected_meta].sprite_count >= MAX_SPRITE) return;
-            
+
+            int starting_index = MetaspriteArray[selected_meta].sprite_count;
+
             var mouseEventArgs = e as MouseEventArgs;
             if (mouseEventArgs.Button == MouseButtons.Right) return;
 
@@ -511,10 +508,6 @@ namespace SNSPED
             }
             else return;
 
-            count = MetaspriteArray[selected_meta].sprite_count =
-                    MetaspriteArray[selected_meta].sprite_count + 1;
-            offset = count - 1;
-
             if (meta_x < 0) meta_x = 0;
             if (meta_y < 0) meta_y = 0;
             if (meta_x > 256) meta_x = 256;
@@ -522,69 +515,145 @@ namespace SNSPED
             meta_x2 = ((meta_x / 2) & 0xf8) - 64; // -64 to 64
             meta_y2 = ((meta_y / 2) & 0xf8) - 64; // -64 to 64
 
-            // add to the data
-            MetaspriteArray[selected_meta].rel_x[offset] = meta_x2;
-            MetaspriteArray[selected_meta].rel_y[offset] = meta_y2;
 
+            // if "MANY", assume to use the large tile, unless small fits
+            bool use_large = true;
+            int x_loop = 1; // default
+            int y_loop = 1;
+            int small_size = 8;
+            int large_size = 16;
+            if (spr_size_mode == SIZES_8_32)
+            {
+                large_size = 32;
+            }
+            if (spr_size_mode == SIZES_8_64)
+            {
+                large_size = 64;
+            }
+            if (spr_size_mode == SIZES_16_32)
+            {
+                small_size = 16; 
+                large_size = 32;
+            }
+            if (spr_size_mode == SIZES_16_64)
+            {
+                small_size = 16;
+                large_size = 64;
+            }
+            if (spr_size_mode == SIZES_32_64)
+            {
+                small_size = 32;
+                large_size = 64;
+            }
+            if(BIG_EDIT_MODE == true)
+            { // how many loops to do ?
+                int x_pixels = Tiles.trans_w * 8;
+                int y_pixels = Tiles.trans_h * 8;
+                x_loop = (x_pixels + large_size - 1) / large_size; // round up
+                if (x_loop < 1) x_loop = 1;
+                y_loop = (y_pixels + large_size - 1) / large_size;
+                if (y_loop < 1) y_loop = 1;
+                // can we squeeze it in a small?
+                if((x_pixels <= small_size) && (y_pixels <= small_size))
+                {
+                    use_large = false;
+                }
+            }
+            else
+            {
+                if (checkBox4.Checked == false)
+                {
+                    use_large = false;
+                }
+            }
+
+            int x_tile_step = large_size / 8;
+            int y_tile_step = x_tile_step * 16;
             int tile_sel = (tile_y * 16) + tile_x;
-            MetaspriteArray[selected_meta].tile[offset] = tile_sel;
-            if (tile_set == 0)
-            {
-                MetaspriteArray[selected_meta].set[offset] = 0;
-            }
-            else
-            {
-                MetaspriteArray[selected_meta].set[offset] = 1;
-            }
-            if (checkBox1.Checked == false) // h flip
-            {
-                MetaspriteArray[selected_meta].h_flip[offset] = 0;
-            }
-            else
-            {
-                MetaspriteArray[selected_meta].h_flip[offset] = 1;
-            }
-            if (checkBox2.Checked == false) // v flip
-            {
-                MetaspriteArray[selected_meta].v_flip[offset] = 0;
-            }
-            else
-            {
-                MetaspriteArray[selected_meta].v_flip[offset] = 1;
-            }
-            if (checkBox4.Checked == false) // size
-            {
-                MetaspriteArray[selected_meta].size[offset] = 0;
-            }
-            else
-            {
-                MetaspriteArray[selected_meta].size[offset] = 1;
-            }
-            // palette (ignore the box on the left, use selected palette)
-            MetaspriteArray[selected_meta].palette[offset] = pal_y;
-            textBox5.Text = pal_y.ToString();
+            offset = MetaspriteArray[selected_meta].sprite_count;
 
-            // add to the list box
-            string str = "tile ";
-            if (tile_sel < 16) str = str + "0";
-            str = str + tile_sel.ToString("X"); //hex
-            str = str + "  set=" + tile_set.ToString();
-            str = str + "   x=" + meta_x2.ToString() + "   y=" + meta_y2.ToString();
-            str = str + "   pal=" + MetaspriteArray[selected_meta].palette[offset].ToString();
-            str = str + "   H=" + MetaspriteArray[selected_meta].h_flip[offset].ToString();
-            str = str + "   V=" + MetaspriteArray[selected_meta].v_flip[offset].ToString();
-            str = str + "   Sz=" + MetaspriteArray[selected_meta].size[offset].ToString();
 
-            listBox2.ClearSelected();
-            listBox2.Items.Add(str);
+            for (int y1 = 0; y1 < y_loop; y1++)
+            {
+                for (int x1 = 0; x1 < x_loop; x1++)
+                {
+                    
+                    // add to the data
+                    MetaspriteArray[selected_meta].rel_x[offset] = meta_x2 + (x1 * large_size);
+                    MetaspriteArray[selected_meta].rel_y[offset] = meta_y2 + (y1 * large_size);
+
+
+                    MetaspriteArray[selected_meta].tile[offset] = tile_sel + (y_tile_step * y1) + (x_tile_step * x1);
+                    if (tile_set == 0)
+                    {
+                        MetaspriteArray[selected_meta].set[offset] = 0;
+                    }
+                    else
+                    {
+                        MetaspriteArray[selected_meta].set[offset] = 1;
+                    }
+                    MetaspriteArray[selected_meta].h_flip[offset] = 0;
+                    MetaspriteArray[selected_meta].v_flip[offset] = 0;
+                    // handle flipping at the end
+                    if (use_large == false) // size
+                    {
+                        MetaspriteArray[selected_meta].size[offset] = 0;
+                    }
+                    else
+                    {
+                        MetaspriteArray[selected_meta].size[offset] = 1;
+                    }
+                    // palette (ignore the box on the left, use selected palette)
+                    MetaspriteArray[selected_meta].palette[offset] = pal_y;
+                    textBox5.Text = pal_y.ToString();
+
+                    // add to the list box
+                    string str = "tile ";
+                    // building the list doesn't matter, is rebuilt at bottom
+                    // but dummy items on the list need to be present to mark them
+                    // selected for the flipping code
+                    listBox2.Items.Add(str);
+                    
+                    offset++;
+
+                    if(offset >= MAX_SPRITE)
+                    {
+                        // no overflow
+                        goto Wrap_It_Up;
+                    }
+                    
+                }
+            }
             
-            listBox2.SelectedIndex = count - 1;
-            listBox2.Refresh();
+            Wrap_It_Up: // for overflow
 
-            str = "";
-            if (offset < 10) str = "0";
-            str = str + offset.ToString();
-            label19.Text = str;
+            MetaspriteArray[selected_meta].sprite_count = offset;
+            
+            listBox2.ClearSelected();
+            int final_index = offset;
+            for (int i = starting_index; i < final_index; i++)
+            {
+                listBox2.SetSelected(i, true); // select all items
+            }
+            // the handlers below work by flipping selected items only
+            // now flip, if needed
+            if (checkBox1.Checked == true) // h flip
+            {
+                H_Flip_Handler();
+            }
+            if (checkBox2.Checked == true) // v flip
+            {
+                V_Flip_Handler();
+            }
+
+            rebuild_spr_list();
+
+            offset--;
+            if (offset < 0) offset = 0;
+            string str2 = "";
+            if (offset < 10) str2 = "0";
+            str2 = str2 + offset.ToString();
+            label19.Text = str2; // sprite selected
             
             update_metatile_image();
         }
@@ -595,6 +664,8 @@ namespace SNSPED
 
         private void pictureBox2_Click(object sender, EventArgs e)
         { // tiles
+            if (BIG_EDIT_MODE == true) return;
+            
             //change the label to tile number, in hex
             tile_x = 0; tile_y = 0; tile_num = 0; //globals
 
@@ -634,7 +705,7 @@ namespace SNSPED
                 }
 
                 newChild.Show();
-                //update
+                
             }
 
             update_tile_image();
@@ -829,29 +900,8 @@ namespace SNSPED
 
             Checkpoint();
 
-            int x_least, x_most, temp1, temp3;
-            // get smallest and largest
-            x_least = 64;
-            x_most = -64;
-            foreach (int index in listBox2.SelectedIndices)
-            {
-                temp1 = MetaspriteArray[selected_meta].rel_x[index];
-                if (temp1 < x_least) x_least = temp1;
-                if (temp1 > x_most) x_most = temp1;
-            }
-            
-            foreach (int index in listBox2.SelectedIndices)
-            {
-                    
-                MetaspriteArray[selected_meta].h_flip[index] =
-                MetaspriteArray[selected_meta].h_flip[index] ^ 1; //xor
+            H_Flip_Handler();
 
-                temp3 = (x_most - MetaspriteArray[selected_meta].rel_x[index]) + x_least;
-
-                if (temp3 < -64) temp3 = -64; // minimum allowed
-                if (temp3 > 64) temp3 = 64; // max allowed
-                MetaspriteArray[selected_meta].rel_x[index] = temp3;
-            }
             rebuild_spr_list();
             string str = "";
             if (selected_spr < 10) str = "0";
@@ -863,6 +913,33 @@ namespace SNSPED
             label5.Focus();
         }
 
+        public void H_Flip_Handler()
+        {
+            int x_least, x_most, temp1, temp3;
+            // get smallest and largest
+            x_least = 64;
+            x_most = -64;
+            foreach (int index in listBox2.SelectedIndices)
+            {
+                temp1 = MetaspriteArray[selected_meta].rel_x[index];
+                if (temp1 < x_least) x_least = temp1;
+                if (temp1 > x_most) x_most = temp1;
+            }
+
+            foreach (int index in listBox2.SelectedIndices)
+            {
+
+                MetaspriteArray[selected_meta].h_flip[index] =
+                MetaspriteArray[selected_meta].h_flip[index] ^ 1; //xor
+
+                temp3 = (x_most - MetaspriteArray[selected_meta].rel_x[index]) + x_least;
+
+                if (temp3 < -64) temp3 = -64; // minimum allowed
+                if (temp3 > 64) temp3 = 64; // max allowed
+                MetaspriteArray[selected_meta].rel_x[index] = temp3;
+            }
+        }
+
         private void button3_Click(object sender, EventArgs e)
         { // v flip
             //flip the selected tile, unless select all, then flip all.
@@ -871,28 +948,8 @@ namespace SNSPED
 
             Checkpoint();
 
-            int y_least, y_most, temp1, temp3;
-            // get smallest and largest
-            y_least = 64;
-            y_most = -64;
-            foreach (int index in listBox2.SelectedIndices)
-            {
-                temp1 = MetaspriteArray[selected_meta].rel_y[index];
-                if (temp1 < y_least) y_least = temp1;
-                if (temp1 > y_most) y_most = temp1;
-            }
-            
-            foreach (int index in listBox2.SelectedIndices)
-            {
-                MetaspriteArray[selected_meta].v_flip[index] =
-                MetaspriteArray[selected_meta].v_flip[index] ^ 1; //xor
+            V_Flip_Handler();
 
-                temp3 = (y_most - MetaspriteArray[selected_meta].rel_y[index]) + y_least;
-
-                if (temp3 < -64) temp3 = -64;
-                if (temp3 > 64) temp3 = 64; // max allowed
-                MetaspriteArray[selected_meta].rel_y[index] = temp3;
-            }
             rebuild_spr_list();
             string str = "";
             if (selected_spr < 10) str = "0";
@@ -904,6 +961,33 @@ namespace SNSPED
 
             label5.Focus();
         }
+
+        public void V_Flip_Handler()
+        {
+            int y_least, y_most, temp1, temp3;
+            // get smallest and largest
+            y_least = 64;
+            y_most = -64;
+            foreach (int index in listBox2.SelectedIndices)
+            {
+                temp1 = MetaspriteArray[selected_meta].rel_y[index];
+                if (temp1 < y_least) y_least = temp1;
+                if (temp1 > y_most) y_most = temp1;
+            }
+
+            foreach (int index in listBox2.SelectedIndices)
+            {
+                MetaspriteArray[selected_meta].v_flip[index] =
+                MetaspriteArray[selected_meta].v_flip[index] ^ 1; //xor
+
+                temp3 = (y_most - MetaspriteArray[selected_meta].rel_y[index]) + y_least;
+
+                if (temp3 < -64) temp3 = -64;
+                if (temp3 > 64) temp3 = 64; // max allowed
+                MetaspriteArray[selected_meta].rel_y[index] = temp3;
+            }
+        }
+
 
         private void button12_Click(object sender, EventArgs e)
         { // resize
@@ -929,6 +1013,8 @@ namespace SNSPED
 
             label5.Focus();
         }
+
+        
 
 
 
@@ -1122,52 +1208,14 @@ namespace SNSPED
             str = str + selected.ToString(); //hex
             label19.Text = str;
 
+            //Highlight_Correct_Box();
             update_metatile_image();
-
-            update_selected_tile();
-        }
-
-
-        private void update_selected_tile()
-        {
-            if (listBox2.SelectedIndex < 0) return;
-            selected_spr = listBox2.SelectedIndex;
-
-            tile_num = MetaspriteArray[selected_meta].tile[selected_spr];
-            //tile_x = 0; tile_y = 0; tile_num = 0; //globals
-            tile_x = tile_num & 0x0f;
-            tile_y = tile_num >> 4;
-            tile_show_num();
-
-            if (newChild != null)
-            {
-                newChild.BringToFront();
-                newChild.update_tile_box();
-            }
-            else
-            {
-                // remember to put the form location as "manual"
-                newChild = new Form2();
-                newChild.Owner = this;
-                int xx = Screen.PrimaryScreen.Bounds.Width;
-                if (this.Location.X + 970 < xx) // set new form location
-                {
-                    newChild.Location = new Point(this.Location.X + 804, this.Location.Y + 80);
-                }
-                else
-                {
-                    newChild.Location = new Point(xx - 170, this.Location.Y);
-                }
-
-                newChild.Show();
-                //update
-            }
-
-            update_tile_image();
+            //update_selected_tile(); // also does update_tile_image()
 
             label5.Focus();
         }
-        
+
+
 
         private void button8_Click(object sender, EventArgs e)
         { // reorder up
@@ -1497,30 +1545,42 @@ namespace SNSPED
 
             else if (e.KeyCode == Keys.NumPad2)
             {
-                if (tile_y < 15) tile_y++;
-                tile_num = (tile_y * 16) + tile_x;
+                if(BIG_EDIT_MODE == false)
+                {
+                    if (tile_y < 15) tile_y++;
+                    tile_num = (tile_y * 16) + tile_x;
+                }
             }
             else if (e.KeyCode == Keys.NumPad4)
             {
-                if (tile_x > 0) tile_x--;
-                tile_num = (tile_y * 16) + tile_x;
+                if (BIG_EDIT_MODE == false)
+                {
+                    if (tile_x > 0) tile_x--;
+                    tile_num = (tile_y * 16) + tile_x;
+                }
             }
             else if (e.KeyCode == Keys.NumPad6)
             {
-                if (tile_x < 15) tile_x++;
-                tile_num = (tile_y * 16) + tile_x;
+                if (BIG_EDIT_MODE == false)
+                {
+                    if (tile_x < 15) tile_x++;
+                    tile_num = (tile_y * 16) + tile_x;
+                }
             }
             else if (e.KeyCode == Keys.NumPad8)
             {
-                if (tile_y > 0) tile_y--;
-                tile_num = (tile_y * 16) + tile_x;
+                if (BIG_EDIT_MODE == false)
+                {
+                    if (tile_y > 0) tile_y--;
+                    tile_num = (tile_y * 16) + tile_x;
+                }
             }
             else if (e.KeyCode == Keys.H)
             {
                 Checkpoint();
                 Tiles.tile_h_flip();
             }
-            else if (e.KeyCode == Keys.V)
+            else if (e.KeyCode == Keys.Y)
             {
                 Checkpoint();
                 Tiles.tile_v_flip();
@@ -1544,7 +1604,13 @@ namespace SNSPED
             {
                 Tiles.tile_copy();
             }
-            else if (e.KeyCode == Keys.P)
+            else if (e.KeyCode == Keys.X) // cut
+            {
+                Tiles.tile_copy();
+                Checkpoint();
+                Tiles.tile_delete();
+            }
+            else if (e.KeyCode == Keys.V)
             {
                 Checkpoint();
                 Tiles.tile_paste();
@@ -1588,6 +1654,11 @@ namespace SNSPED
             else if (e.KeyCode == Keys.Z)
             {
                 Do_Undo();
+            }
+            else if (e.KeyCode == Keys.A)
+            {
+                Tiles.Select_All();
+                tile_show_num();
             }
 
 
@@ -1759,7 +1830,9 @@ namespace SNSPED
             str = str + selected_spr.ToString(); //hex
             label19.Text = str;
 
+            //Highlight_Correct_Box();
             update_metatile_image();
+            //update_selected_tile(); // also does update_tile_image()
             label5.Focus();
         }
 
@@ -1819,9 +1892,9 @@ namespace SNSPED
             }
             selected_spr = 0;
             label19.Text = "00";
+            //Highlight_Correct_Box();
             update_metatile_image();
-
-            update_selected_tile();
+            //update_selected_tile(); // also does update_tile_image()
 
             label5.Focus();
         }
@@ -2131,10 +2204,7 @@ namespace SNSPED
             }
         }
 
-        /*private void smartImportTilesToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-
-        }*/
+        
 
         private void optionsToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -2158,7 +2228,7 @@ namespace SNSPED
                 }
 
                 newChild3.Show();
-                //update
+                
             }
         }
 
@@ -2499,6 +2569,167 @@ namespace SNSPED
             color_count++;
         }
 
+        private void checkBox5_Click(object sender, EventArgs e)
+        {
+            if(checkBox5.Checked == true)
+            {
+                BIG_EDIT_MODE = true;
+                checkBox5.Text = "MANY";
+            }
+            else
+            {
+                BIG_EDIT_MODE = false;
+                checkBox5.Text = "ONE";
+            }
+            update_tile_image();
+
+            Tiles.Has_Copied = false; // the 2 aren't compatible
+
+            label5.Focus();
+        }
+
+        private void pictureBox2_MouseDown(object sender, MouseEventArgs e)
+        {
+            if ((BIG_EDIT_MODE == true) && (e.Button == MouseButtons.Left))
+            {
+                var mouseEventArgs = e as MouseEventArgs;
+                int pixel_x = mouseEventArgs.X;
+                int pixel_y = mouseEventArgs.Y;
+
+                if (pixel_x < 0) pixel_x = 0;
+                if (pixel_x > 255) pixel_x = 255;
+                if (pixel_y < 0) pixel_y = 0;
+                if (pixel_y > 255) pixel_y = 255;
+
+                BE_x_cur = BE_x1 = pixel_x / 16;
+                BE_x2 = BE_x1 + 1;
+                BE_y_cur = BE_y1 = pixel_y / 16;
+                BE_y2 = BE_y1 + 1;
+
+                tile_x = BE_x1;
+                tile_y = BE_y1;
+                tile_num = (tile_y * 16) + tile_x;
+                tile_show_num();
+
+                if (newChild != null)
+                {
+                    newChild.BringToFront();
+                    newChild.update_tile_box();
+                }
+                else
+                {
+                    // remember to put the form location as "manual"
+                    newChild = new Form2();
+                    newChild.Owner = this;
+                    int xx = Screen.PrimaryScreen.Bounds.Width;
+                    if (this.Location.X + 970 < xx) // set new form location
+                    {
+                        newChild.Location = new Point(this.Location.X + 804, this.Location.Y + 80);
+                    }
+                    else
+                    {
+                        newChild.Location = new Point(xx - 170, this.Location.Y);
+                    }
+
+                    newChild.Show();
+                    
+                }
+
+                update_tile_image();
+                //common_update2();
+            }
+        }
+
+        private void pictureBox2_MouseUp(object sender, MouseEventArgs e)
+        {
+            if ((BIG_EDIT_MODE == true) && (e.Button == MouseButtons.Left))
+            {
+                var mouseEventArgs = e as MouseEventArgs;
+                int pixel_x = mouseEventArgs.X;
+                int pixel_y = mouseEventArgs.Y;
+
+                if (pixel_x < 0) pixel_x = 0;
+                if (pixel_x > 255) pixel_x = 255;
+                if (pixel_y < 0) pixel_y = 0;
+                if (pixel_y > 255) pixel_y = 255;
+
+                int temp_x = pixel_x / 16;
+                int temp_y = pixel_y / 16;
+
+                BE_x_cur = temp_x;
+                if (BE_x_cur <= BE_x1)
+                {
+                    BE_x2 = BE_x1 + 1;
+                }
+                else
+                {
+                    BE_x2 = BE_x_cur + 1;
+                }
+
+                BE_y_cur = temp_y;
+                if (BE_y_cur <= BE_y1)
+                {
+                    BE_y2 = BE_y1 + 1;
+                }
+                else
+                {
+                    BE_y2 = BE_y_cur + 1;
+                }
+
+                Tiles.trans_x = BE_x1;
+                Tiles.trans_y = BE_y1;
+                Tiles.trans_w = BE_x2 - BE_x1;
+                Tiles.trans_h = BE_y2 - BE_y1;
+
+                update_tile_image();
+                
+                label5.Focus();
+            }
+        }
+
+
+
+        private void pictureBox2_MouseMove(object sender, MouseEventArgs e)
+        {
+            if ((BIG_EDIT_MODE == true) && (e.Button == MouseButtons.Left))
+            {
+                var mouseEventArgs = e as MouseEventArgs;
+                int pixel_x = mouseEventArgs.X;
+                int pixel_y = mouseEventArgs.Y;
+
+                if (pixel_x < 0) pixel_x = 0;
+                if (pixel_x > 255) pixel_x = 255;
+                if (pixel_y < 0) pixel_y = 0;
+                if (pixel_y > 255) pixel_y = 255;
+
+                int temp_x = pixel_x / 16;
+                int temp_y = pixel_y / 16;
+                if ((temp_x != BE_x_cur) || (temp_y != BE_y_cur))
+                {
+                    BE_x_cur = temp_x;
+                    if(BE_x_cur <= BE_x1)
+                    {
+                        BE_x2 = BE_x1 + 1;
+                    }
+                    else
+                    {
+                        BE_x2 = BE_x_cur + 1;
+                    }
+
+                    BE_y_cur = temp_y;
+                    if (BE_y_cur <= BE_y1)
+                    {
+                        BE_y2 = BE_y1 + 1;
+                    }
+                    else
+                    {
+                        BE_y2 = BE_y_cur + 1;
+                    }
+
+                    update_tile_image();
+                }
+            }
+        }
 
         public int Best_Color(Color temp_color, int num_col, int start_offset)
         {
@@ -2966,6 +3197,7 @@ namespace SNSPED
                                 str = str + "   Sz=" + MetaspriteArray[selected_meta].size[offset].ToString();
 
                                 listBox2.Items.Add(str);
+                                //listBox2.SetSelected(offset, true);
 
                                 offset++;
                                 count++;
@@ -2981,9 +3213,9 @@ namespace SNSPED
                         }
                         MetaspriteArray[selected_meta].sprite_count = count;
 
-                        selected_meta++; // will be undone later
+                        //selected_meta = 0; // ?
 
-                        listBox2.ClearSelected();
+                        //listBox2.ClearSelected();
                         listBox2.Refresh();
                         textBox5.Text = pal_y.ToString();
                         label19.Text = "00"; // which sprite selected, default
@@ -3007,8 +3239,8 @@ namespace SNSPED
                         int num_y_chop = image_height / f5_height;
                         if (num_x_chop < 1) num_x_chop = 1;
                         if (num_y_chop < 1) num_y_chop = 1;
-                        int chop_width = f5_width; // ?
-                        int chop_height = f5_height; // ?
+                        int chop_width = f5_width; 
+                        int chop_height = f5_height; 
 
                         num_tiles_wide = chop_width / LG_meta_size; // tiles per metasprite
                         if (num_tiles_wide < 1) num_tiles_wide = 1;
@@ -3177,7 +3409,11 @@ namespace SNSPED
 
                 Oh_Crap:
 
-                    if (selected_meta > 0) selected_meta--;
+                    if (f5_cb1 == false) // multiple
+                    {
+                        if (selected_meta > 0) selected_meta--;
+                    }
+                    
 
                     if (f3_cb1 == true)
                     {
@@ -3198,6 +3434,11 @@ namespace SNSPED
                     // this should trigger an event to redraw the list
                     // and also the metasprite itself
 
+                    for (int i = 0; i < listBox2.Items.Count; i++)
+                    {
+                        listBox2.SetSelected(i, true); // mark all selected
+                    }
+                    listBox2.Refresh();
                 }
             }
         }
@@ -3289,84 +3530,36 @@ namespace SNSPED
             } // standard resize of bmp was blurry, this makes it sharp
 
 
-            //make sure white selection box size is correct
             int boxsize = 16;
-            if(spr_size_mode == SIZES_8_16)
+            int pos_x, pos_x2, pos_y, pos_y2; // L, R, T, B
+            int boxsizeY = boxsize;
+            //put a white box around the selected tile
+
+            if (BIG_EDIT_MODE == false)
             {
-                if(checkBox4.Checked == false)
-                {
-                    boxsize = 16;
-                }
-                else
-                {
-                    boxsize = 32;
-                }
+                pos_y = (tile_y * 16) - 1; // it's doing a weird off by 1 thing
+                if (pos_y < 0) pos_y = 0; // so have to adjust by 1, and not == -1
+                pos_x = (tile_x * 16) - 1;
+                if (pos_x < 0) pos_x = 0;
+                pos_x2 = pos_x + boxsize - 1;
+                pos_y2 = pos_y + boxsize - 1;
             }
-            else if(spr_size_mode == SIZES_8_32)
+            else // BIG EDIT MODE
             {
-                if (checkBox4.Checked == false)
-                {
-                    boxsize = 16;
-                }
-                else
-                {
-                    boxsize = 64;
-                }
-            }
-            else if (spr_size_mode == SIZES_8_64)
-            {
-                if (checkBox4.Checked == false)
-                {
-                    boxsize = 16;
-                }
-                else
-                {
-                    boxsize = 128;
-                }
-            }
-            else if (spr_size_mode == SIZES_16_32)
-            {
-                if (checkBox4.Checked == false)
-                {
-                    boxsize = 32;
-                }
-                else
-                {
-                    boxsize = 64;
-                }
-            }
-            else if (spr_size_mode == SIZES_16_64)
-            {
-                if (checkBox4.Checked == false)
-                {
-                    boxsize = 32;
-                }
-                else
-                {
-                    boxsize = 128;
-                }
-            }
-            else // 32 and 64
-            {
-                if (checkBox4.Checked == false)
-                {
-                    boxsize = 64;
-                }
-                else
-                {
-                    boxsize = 128;
-                }
+                pos_x = (BE_x1 * 16) - 1;
+                if (pos_x < 0) pos_x = 0;
+                pos_x2 = (BE_x2 * 16) - 1;
+                if (pos_x2 > 255) pos_x2 = 255;
+                boxsize = pos_x2 - pos_x;
+                pos_y = (BE_y1 * 16) - 1;
+                if (pos_y < 0) pos_y = 0;
+                pos_y2 = (BE_y2 * 16) - 1;
+                if (pos_y2 > 255) pos_y2 = 255;
+                boxsizeY = pos_y2 - pos_y;
+                boxsizeY++; // 1 more
             }
 
-            //put a white box around the selected tile
-            int pos_x, pos_x2, pos_y, pos_y2; // L, R, T, B
-            pos_y = (tile_y * 16) - 1; // it's doing a weird off by 1 thing
-            if (pos_y < 0) pos_y = 0; // so have to adjust by 1, and not == -1
-            pos_x = (tile_x * 16) - 1;
-            if (pos_x < 0) pos_x = 0;
-            pos_x2 = pos_x + boxsize - 1;
-            pos_y2 = pos_y + boxsize - 1;
-            for(int i = 0; i < boxsize; i++)
+            for(int i = 0; i < boxsizeY; i++)
             {
                 //left edge
                 if (pos_y + i >= 256) break;
@@ -3380,7 +3573,7 @@ namespace SNSPED
             }
             if(pos_x2 < 256)
             {
-                for (int i = 0; i < boxsize; i++)
+                for (int i = 0; i < boxsizeY; i++)
                 {
                     //right edge
                     if (pos_y + i >= 256) break;
@@ -3391,7 +3584,7 @@ namespace SNSPED
             {
                 for (int i = 0; i < boxsize; i++)
                 {
-                    //top edge
+                    //bottom edge
                     if (pos_x + i >= 256) break;
                     temp_bmp.SetPixel(pos_x + i, pos_y2, Color.White);
                 }
