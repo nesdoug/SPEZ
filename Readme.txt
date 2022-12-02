@@ -1,5 +1,5 @@
-SPEZ - SNES Sprite Editor ver 2.2
-Nov 16, 2022
+SPEZ - SNES Sprite Editor ver 2.3
+Dec 2, 2022
 .NET 4.5.2 (works with MONO on non-Windows systems)
 For SNES game development.
 Freeware by Doug Fraker
@@ -36,21 +36,24 @@ version history
     - load tiles to selected tile
 2.1 - added a "smart import" for metatiles
     - output says 8x8 and 16x16 istead of 8 and 16
-	- white box on tile selection resizes to the
-	  currently selected sprite size (apply large, eg)
+    - white box on tile selection resizes to the
+      currently selected sprite size (apply large, eg)
     - clicking on a listbox will highlight a tile
-	- minor change on "use top left pixel as transparent"
-	- moving metasprites past the edge won't deform them
-	- less strict in moving sprites past edges
-	- default priority has been changed to 2
-	- allow small images to be imported as palettes
-	  (as small as 2x1) to allow 16x1 images as a palette
-	- importing images only blanks the tiles it needs
+    - minor change on "use top left pixel as transparent"
+    - moving metasprites past the edge won't deform them
+    - less strict in moving sprites past edges
+    - default priority has been changed to 2
+    - allow small images to be imported as palettes
+      (as small as 2x1) to allow 16x1 images as a palette
+    - importing images only blanks the tiles it needs
 2.2 - changed key commands, and added some...
     - a=select all, x=cut, v=paste, y=vert flip
-	- multi-tile select mode added (= default)
-	- allows cut/paste/flip/etc with multiple tiles
-	- and adding multiple tiles into metasprite at once
+    - multi-tile select mode added (= default)
+    - allows cut/paste/flip/etc with multiple tiles
+    - and adding multiple tiles into metasprite at once
+2.3 - slight change to "best color" formula
+      (should prefer a color closer to the original hue
+      rather than a wrong color of the same brightness)
 
 Note, the RLE is a special compression format that I wrote, 
 specifically for SNES maps (but could be used for tiles).

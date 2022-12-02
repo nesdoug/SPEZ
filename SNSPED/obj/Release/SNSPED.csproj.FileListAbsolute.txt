@@ -1,0 +1,14 @@
+C:\Users\User\Desktop\Dad\VS Projects\SPEZ\SNSPED\bin\Release\SPEZ.exe.config
+C:\Users\User\Desktop\Dad\VS Projects\SPEZ\SNSPED\bin\Release\SPEZ.exe
+C:\Users\User\Desktop\Dad\VS Projects\SPEZ\SNSPED\bin\Release\SPEZ.pdb
+C:\Users\User\Desktop\Dad\VS Projects\SPEZ\SNSPED\obj\Release\SNSPED.csprojAssemblyReference.cache
+C:\Users\User\Desktop\Dad\VS Projects\SPEZ\SNSPED\obj\Release\SNSPED.Form1.resources
+C:\Users\User\Desktop\Dad\VS Projects\SPEZ\SNSPED\obj\Release\SNSPED.Form2.resources
+C:\Users\User\Desktop\Dad\VS Projects\SPEZ\SNSPED\obj\Release\SNSPED.Form3.resources
+C:\Users\User\Desktop\Dad\VS Projects\SPEZ\SNSPED\obj\Release\SNSPED.Form4.resources
+C:\Users\User\Desktop\Dad\VS Projects\SPEZ\SNSPED\obj\Release\SNSPED.Form5.resources
+C:\Users\User\Desktop\Dad\VS Projects\SPEZ\SNSPED\obj\Release\SNSPED.Properties.Resources.resources
+C:\Users\User\Desktop\Dad\VS Projects\SPEZ\SNSPED\obj\Release\SNSPED.csproj.GenerateResource.cache
+C:\Users\User\Desktop\Dad\VS Projects\SPEZ\SNSPED\obj\Release\SNSPED.csproj.CoreCompileInputs.cache
+C:\Users\User\Desktop\Dad\VS Projects\SPEZ\SNSPED\obj\Release\SPEZ.exe
+C:\Users\User\Desktop\Dad\VS Projects\SPEZ\SNSPED\obj\Release\SPEZ.pdb

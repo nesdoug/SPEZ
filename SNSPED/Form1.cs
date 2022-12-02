@@ -2245,7 +2245,7 @@ namespace SNSPED
                 {
                     Bitmap import_bmp = new Bitmap(dlg.FileName);
 
-                    if ((import_bmp.Height < 1) || (import_bmp.Width < 2))
+                    if ((import_bmp.Height < 1) || (import_bmp.Width < 2)) // 2x1 minimum
                     {
                         MessageBox.Show("Error. File too small?");
                         import_bmp.Dispose();
@@ -2734,7 +2734,7 @@ namespace SNSPED
         public int Best_Color(Color temp_color, int num_col, int start_offset)
         {
             int best_index = 0;
-            int best_count = 99999;
+            int best_count = 19999999; // !
 
             for (int i = 0; i < num_col; i++)
             {
@@ -2745,7 +2745,11 @@ namespace SNSPED
                 green = Math.Abs(green);
                 int blue = Palettes.pal_b[i2] - temp_color.B;
                 blue = Math.Abs(blue);
-                int sum = red + green + blue;
+
+                int sum = (red * red) + (green * green) + (blue * blue);
+                // this comment is the most salient code I have written this year
+                // left off a square root of sum that was unneeded
+
                 if (sum < best_count)
                 {
                     best_count = sum;
