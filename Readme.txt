@@ -1,5 +1,5 @@
-SPEZ - SNES Sprite Editor ver 2.3
-Dec 2, 2022
+SPEZ - SNES Sprite Editor ver 2.4
+Dec 9, 2022
 .NET 4.5.2 (works with MONO on non-Windows systems)
 For SNES game development.
 Freeware by Doug Fraker
@@ -54,6 +54,7 @@ version history
 2.3 - slight change to "best color" formula
       (should prefer a color closer to the original hue
       rather than a wrong color of the same brightness)
+2.4 - slight change (form2 code)
 
 Note, the RLE is a special compression format that I wrote, 
 specifically for SNES maps (but could be used for tiles).
@@ -188,8 +189,8 @@ Key Commands
 Numberpad 2,4,6,8 to move to adjacent tile (One Tile Mode Only)
 Arrow keys to shift the image.
 F - fills a tile with selected color
-H - flip horizontal (notice the symmetric shape of the letter W)
-Y - flip vertical (notice the symmetric shape of the letter E)
+H - flip horizontal
+Y - flip vertical
 R - rotate clockwise
 L - rotate counter clockwise
 Delete - fills with color 0 (transparent)

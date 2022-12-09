@@ -105,7 +105,7 @@ namespace SNSPED
                 int color = 0; // which color is selected in palette
                 
                 color = Form1.pal_x & 0x0f;
-                
+                if (Tiles.Tile_Arrays[index] == color) return; // ! only update if different
                 Tiles.Tile_Arrays[index] = color;
 
                 //update tileset picture too
