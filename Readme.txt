@@ -1,5 +1,5 @@
-SPEZ - SNES Sprite Editor ver 2.4
-Dec 9, 2022
+SPEZ - SNES Sprite Editor ver 3.0
+Jan 8, 2023
 .NET 4.5.2 (works with MONO on non-Windows systems)
 For SNES game development.
 Freeware by Doug Fraker
@@ -55,6 +55,18 @@ version history
       (should prefer a color closer to the original hue
       rather than a wrong color of the same brightness)
 2.4 - slight change (form2 code)
+3.0 - added hitbox and flip data (and asm code to use it)
+    - different file version
+    - other minor changes
+    - added example code
+
+
+WARNING - the new metasprite data is incompatible with
+earlier versions of SPEZ (2 bytes for flipping added at 
+the start of the data set will cause it to break)
+See example code for ASM code that will work.
+
+(uncheck flip data if you prefer the old SPEZ 2 code)
 
 Note, the RLE is a special compression format that I wrote, 
 specifically for SNES maps (but could be used for tiles).
@@ -149,15 +161,27 @@ an object should be.
 Saving/loading to .bin is just a way to copy one metasprite from one 
 file to another, and is not useful outside this program.
 
-Saving to .asm is a SNES standard byte layout, 5 bytes per sprite.
+The .asm data is in this format...
+4 bytes of hitbox data
+2 bytes of flipping data (x,y)
+Then...
+5 bytes per sprite.
 1.relative X
 2.relative Y
 3.tile #
 4.attributes (V-flip, H-flip, priority, palette, tileset)
 5.size
 (the 9th X bit is not used)
+Then $80 at the end (end of data marker).
 
-These asm files work with the easySNES code, also by Doug Fraker.
+See the example code in this project folder.
+NOTE - 3.0 code is different from and incompatible 
+with earlier versions.
+
+If you prefer the old version, you should uncheck the
+"include hitbox data" and "include flip data" before
+exporting the metasprites, and use the old_library
+asm code, and make sure Clear_OAM zeros the high table
 
 
 
@@ -198,6 +222,7 @@ C - copy
 X - cut
 V - paste.
 A - select all tiles
+
 
 
 Palette
@@ -243,6 +268,29 @@ File/Export Image saves the current view on the Tilemap as .png .bmp or .jpg
 
 
 
+Hitbox
+------
+Click Edit Hitbox (checkbox at bottom)
+Left Click Meta Image to change the top left of the hitbox
+Right Click Meta Image to change the bottom right of the 
+hitbox 
+
+(uncheck to go back to normal editing)
+
+You can use those little arrow buttons to make tiny changes to
+the hitbox, if you left click first, the arrow buttons will
+nudge the top left, if you right click first, they nudge the
+bottom right 
+(arrow button, not arrow KEYS, which shift the CHR graphics)
+
+There's also an AUTO HB, which might help generate a hitbox.
+
+NOTE - flipping data is linked to hitbox data. If your hitbox
+is wildly different than the tile placements, it will cause
+flip errors. If your hitbox is doing something unusual, it
+may cause flip errors.
+
+
 WHAT IS THAT?
 -------------
 -On the left side, the palette box is for changing the palette
@@ -265,7 +313,8 @@ native .SPZ file format
  1 byte # of 4bpp tilesets (should be 2)
  1 byte # of metasprites (should be 100)
  1 byte # of sprites per metasprite (should be 100)
- pad 8 zeros
+ 1 byte # of sprite size settings
+ pad 7 zeros
 256 bytes per palette (should total 256)
 8192 bytes per 4bpp tileset (x2 = 16384 total)
 100x100x4 = metasprites (40000 total)
@@ -274,7 +323,9 @@ native .SPZ file format
 priority (100 total)
 sprite count (100 total)
 name (20 chars) x 100 = (2000 total)
-16+256+16384+40000+100+100+2000 = 58856 bytes.
+hitbox x (100), y (100), x2 (100), y2 (100)
+
+ = 59256 bytes.
 
 
 

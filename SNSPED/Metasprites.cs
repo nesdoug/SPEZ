@@ -19,7 +19,14 @@
         public int priority; // 0-3, optional
         public int sprite_count; // starts at zero = null
 
+        public int hitbox_x;
+        public int hitbox_y;
+        public int hitbox_x2; // convert to width later
+        public int hitbox_y2; // convert to height later
+
         public string name;
+
+        
 
         public void Metasprite()
         {

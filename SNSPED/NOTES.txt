@@ -5,10 +5,7 @@
 
 
 FUTURE TODOS - 
--hitbox (future version ?)
--center point / flip point
-(2nd hitbox ?)
--write asm code to match it
+-done
 
 
 
@@ -33,3 +30,6 @@ FUTURE TODOS -
 -change white box to 8x8 again ("ONE" mode)
 -placing will place all of the selected tiles (MANY MODE)
 -flipped (etc) will flip entire thing (MANY MODE)
+-added hitboxes
+-added flipping ability and changed metasprite data
+ to have hitbox and flipping data in it

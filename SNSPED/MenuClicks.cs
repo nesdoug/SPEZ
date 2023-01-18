@@ -19,7 +19,7 @@ namespace SNSPED
             // note, we are ignoring the header, maybe change later
             // all sizes are fixed for now
 
-            byte[] big_array = new byte[58856];
+            byte[] big_array = new byte[59256];
             int temp = 0;
             int[] bit1 = new int[8]; // bit planes
             int[] bit2 = new int[8];
@@ -39,11 +39,12 @@ namespace SNSPED
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 System.IO.FileStream fs = (System.IO.FileStream)openFileDialog1.OpenFile();
-                if (fs.Length == 58856)
+                if ((fs.Length == 58856) || (fs.Length == 59256)) // ver 1 or ver 2
                 {
                     undo_ready = false;
+                    int file_length = (int)fs.Length;
 
-                    for (int i = 0; i < 58856; i++)
+                    for (int i = 0; i < file_length; i++)
                     {
                         big_array[i] = (byte)fs.ReadByte();
                     }
@@ -51,6 +52,37 @@ namespace SNSPED
                     if ((big_array[0] == (byte)'S') && (big_array[1] == (byte)'P')
                         && (big_array[2] == (byte)'Z'))
                     {
+                        spr_size_mode = big_array[8];
+                        and16ToolStripMenuItem.Checked = false;
+                        and32ToolStripMenuItem.Checked = false;
+                        and64ToolStripMenuItem.Checked = false;
+                        and32ToolStripMenuItem1.Checked = false;
+                        and64ToolStripMenuItem1.Checked = false;
+                        and64ToolStripMenuItem2.Checked = false;
+                        switch (spr_size_mode)
+                        {
+                            case SIZES_8_16:
+                            default:
+                                and16ToolStripMenuItem.Checked = true;
+                                break;
+                            case SIZES_8_32:
+                                and32ToolStripMenuItem.Checked = true;
+                                break;
+                            case SIZES_8_64:
+                                and64ToolStripMenuItem.Checked = true;
+                                break;
+                            case SIZES_16_32:
+                                and32ToolStripMenuItem1.Checked = true;
+                                break;
+                            case SIZES_16_64:
+                                and64ToolStripMenuItem1.Checked = true;
+                                break;
+                            case SIZES_32_64:
+                                and64ToolStripMenuItem2.Checked = true;
+                                break;
+                        }
+
+
                         //copy the palette
                         int offset = 16;
                         for (int i = 0; i < 256; i += 2)
@@ -115,9 +147,9 @@ namespace SNSPED
                             for (int j = 0; j < 100; j++) //sprite
                             {
                                 temp = (sbyte)big_array[offset++];
-                                MetaspriteArray[i].rel_x[j] = temp;
+                                MetaspriteArray[i].rel_x[j] = GetInRange1(temp);
                                 temp = (sbyte)big_array[offset++];
-                                MetaspriteArray[i].rel_y[j] = temp;
+                                MetaspriteArray[i].rel_y[j] = GetInRange1(temp);
                                 temp = big_array[offset++];
                                 MetaspriteArray[i].tile[j] = temp;
                                 temp = big_array[offset++];
@@ -159,6 +191,43 @@ namespace SNSPED
                             MetaspriteArray[i].name = local_name;
                             listBox1.Items[i] = local_name;
                         }
+
+                        if(big_array[3] == 2) // version #
+                        { // file ver 2
+                            // make sure that the promotion to signed int works, cast to signed byte
+                            for (int i = 0; i < 100; i++) 
+                            {
+                                temp = (sbyte)big_array[offset++];
+                                MetaspriteArray[i].hitbox_x = GetInRange2(temp);
+                            }
+                            for (int i = 0; i < 100; i++)
+                            {
+                                temp = (sbyte)big_array[offset++];
+                                MetaspriteArray[i].hitbox_y = GetInRange2(temp);
+                            }
+                            for (int i = 0; i < 100; i++)
+                            {
+                                temp = (sbyte)big_array[offset++];
+                                MetaspriteArray[i].hitbox_x2 = GetInRange2(temp);
+                            }
+                            for (int i = 0; i < 100; i++)
+                            {
+                                temp = (sbyte)big_array[offset++];
+                                MetaspriteArray[i].hitbox_y2 = GetInRange2(temp);
+                            }
+                        }
+                        else
+                        { // file ver 1
+                            // just default all the hitbox vars
+                            for(int i = 0; i < 100; i++)
+                            {
+                                MetaspriteArray[i].hitbox_x = 0;
+                                MetaspriteArray[i].hitbox_y = 0;
+                                MetaspriteArray[i].hitbox_x2 = 15;
+                                MetaspriteArray[i].hitbox_y2 = 15;
+                            }
+                        }
+
                         //update everything
                         listBox1.SelectedIndex = 0;
                         rebuild_spr_list();
@@ -187,7 +256,8 @@ namespace SNSPED
                 }
 
                 fs.Close();
-                
+
+                update_hitbox_text();
                 update_palette(); 
                 common_update2();
                 disable_map_click = 1;
@@ -197,7 +267,7 @@ namespace SNSPED
 
         private void saveSessionToolStripMenuItem_Click(object sender, EventArgs e)
         { // file / save session
-            byte[] big_array = new byte[58856];
+            byte[] big_array = new byte[59256]; // 58856 + 400 = 59256
             int temp, count;
             int[] bit1 = new int[8]; // bit planes
             int[] bit2 = new int[8];
@@ -207,14 +277,16 @@ namespace SNSPED
             big_array[0] = (byte)'S';
             big_array[1] = (byte)'P';
             big_array[2] = (byte)'Z';
-            big_array[3] = 1; // SPZ file version
+            big_array[3] = 2; // SPZ file version
             big_array[4] = 1; // # palettes (of 128 colors)
             big_array[5] = 2; // # 4bpp tilesets
             big_array[6] = 100; // # of metasprites
             big_array[7] = 100; // # of sprites per metasprite
             // I don't use these values currently, but maybe will later.
 
-            for (int i = 8; i < 16; i++)
+            big_array[8] = (byte)spr_size_mode;
+
+            for (int i = 9; i < 16; i++)
             {
                 big_array[i] = 0;
             }
@@ -306,7 +378,26 @@ namespace SNSPED
                     
                 }
             }
-            
+
+            for (int i = 0; i < 100; i++) // meta
+            { //hitbox_x
+                byte testval = (byte)MetaspriteArray[i].hitbox_x; // debug
+                big_array[count++] = (byte)MetaspriteArray[i].hitbox_x;
+            }
+            for (int i = 0; i < 100; i++) // meta
+            { //hitbox_y
+                big_array[count++] = (byte)MetaspriteArray[i].hitbox_y;
+            }
+            for (int i = 0; i < 100; i++) // meta
+            { //hitbox_x2
+                big_array[count++] = (byte)MetaspriteArray[i].hitbox_x2;
+            }
+            for (int i = 0; i < 100; i++) // meta
+            { //hitbox_y2
+                big_array[count++] = (byte)MetaspriteArray[i].hitbox_y2;
+            }
+
+
 
             SaveFileDialog saveFileDialog1 = new SaveFileDialog();
             saveFileDialog1.Filter = "SPZ File (*.SPZ)|*.SPZ|All files (*.*)|*.*";
@@ -316,7 +407,7 @@ namespace SNSPED
             if (saveFileDialog1.FileName != "")
             {
                 System.IO.FileStream fs = (System.IO.FileStream)saveFileDialog1.OpenFile();
-                for (int i = 0; i < 58856; i++)
+                for (int i = 0; i < 59256; i++)
                 {
                     fs.WriteByte(big_array[i]);
                 }
@@ -371,7 +462,7 @@ namespace SNSPED
             // it doesn't actually clear that data, just the loaded data
             // and the number of sprites var makes it so you can't see the rest
 
-            byte[] b_array = new byte[422]; // 100 * 4 + 2 + 20
+            byte[] b_array = new byte[426]; // 100 * 4 + 2 + 20 + 4
 
             OpenFileDialog openFileDialog1 = new OpenFileDialog();
             openFileDialog1.Title = "Select a Metasprite";
@@ -381,16 +472,13 @@ namespace SNSPED
             {
                 System.IO.FileStream fs = (System.IO.FileStream)openFileDialog1.OpenFile();
 
-                if (fs.Length != 422)
-                {
-                    MessageBox.Show("File size error. Expected 422 bytes.",
-                    "File size error", MessageBoxButtons.OK);
-                }
-                else
+                if ((fs.Length == 422) || (fs.Length == 426)) // was 422
                 {
                     Checkpoint();
-                    
-                    for (int i = 0; i < 422; i++)
+
+                    int file_length = (int)fs.Length;
+
+                    for (int i = 0; i < file_length; i++)
                     {
                         b_array[i] = (byte)fs.ReadByte();
                     }
@@ -398,8 +486,10 @@ namespace SNSPED
                     int temp = 0;
                     for (int i = 0; i < 100; i++)
                     {
-                        MetaspriteArray[selected_meta].rel_x[i] = (sbyte)b_array[offset++];
-                        MetaspriteArray[selected_meta].rel_y[i] = (sbyte)b_array[offset++];
+                        temp = (sbyte)b_array[offset++];
+                        MetaspriteArray[selected_meta].rel_x[i] = GetInRange1(temp);
+                        temp = (sbyte)b_array[offset++];
+                        MetaspriteArray[selected_meta].rel_y[i] = GetInRange1(temp);
                         MetaspriteArray[selected_meta].tile[i] = b_array[offset++];
                         temp = b_array[offset++];
                         MetaspriteArray[selected_meta].set[i] = temp & 0x01;
@@ -429,19 +519,62 @@ namespace SNSPED
                         listBox2.SelectedIndex = 0;
                     }
                     selected_spr = 0;
+
+                    // hitbox vars
+                    if(file_length == 426)
+                    {
+                        temp = (sbyte)b_array[422];
+                        MetaspriteArray[selected_meta].hitbox_x = GetInRange2(temp);
+                        temp = (sbyte)b_array[423];
+                        MetaspriteArray[selected_meta].hitbox_y = GetInRange2(temp);
+                        temp = (sbyte)b_array[424];
+                        MetaspriteArray[selected_meta].hitbox_x2 = GetInRange2(temp);
+                        temp = (sbyte)b_array[425];
+                        MetaspriteArray[selected_meta].hitbox_y2 = GetInRange2(temp);
+                    }
+                    else // old version, just use default hitbox
+                    {
+                        MetaspriteArray[selected_meta].hitbox_x = 0;
+                        MetaspriteArray[selected_meta].hitbox_y = 0;
+                        MetaspriteArray[selected_meta].hitbox_x2 = 15;
+                        MetaspriteArray[selected_meta].hitbox_y2 = 15;
+                    }
+
+                }
+                else
+                {
+                    MessageBox.Show("File size error. Expected 426 bytes.",
+                    "File size error", MessageBoxButtons.OK);
                 }
 
                 fs.Close();
 
+                update_hitbox_text();
                 update_metatile_image();
                 disable_map_click = 1;
             }
 
         } // end of load metasprite
 
+        public int GetInRange1(int val)
+        {
+            // sprite positions can't go beyond this range.
+            if (val > 120) val = 120;
+            if (val < -64) val = -64;
+            return val;
+        }
+
+        public int GetInRange2(int val)
+        {
+            // hitbox can't go beyond this range.
+            if (val > 64) val = 64;
+            if (val < -64) val = -64;
+            return val;
+        }
+
         private void saveBinToolStripMenuItem_Click(object sender, EventArgs e)
         { // save 1 metasprite as binary
-            byte[] b_array = new byte[422]; // 400 + 2 + 20
+            byte[] b_array = new byte[426]; // 400 + 2 + 20 + 4
             int temp, offset;
             offset = 0;
             for(int i = 0; i<100; i++) // sprite
@@ -474,6 +607,11 @@ namespace SNSPED
             {
                 b_array[offset++] = 0; // zero fill to 422
             }
+            // hitbox vars
+            b_array[422] = (byte)MetaspriteArray[selected_meta].hitbox_x;
+            b_array[423] = (byte)MetaspriteArray[selected_meta].hitbox_y;
+            b_array[424] = (byte)MetaspriteArray[selected_meta].hitbox_x2;
+            b_array[425] = (byte)MetaspriteArray[selected_meta].hitbox_y2;
 
             SaveFileDialog saveFileDialog1 = new SaveFileDialog();
             saveFileDialog1.Filter = "Metasprite (*.bin)|*.bin|All files (*.*)|*.*";
@@ -483,7 +621,7 @@ namespace SNSPED
             if (saveFileDialog1.FileName != "")
             {
                 System.IO.FileStream fs = (System.IO.FileStream)saveFileDialog1.OpenFile();
-                for (int i = 0; i < 422; i++)
+                for (int i = 0; i < 426; i++)
                 {
                     fs.WriteByte(b_array[i]);
                 }
@@ -551,10 +689,84 @@ namespace SNSPED
                                 break;
                         }
 
+                        if(includeToolStripMenuItem.Checked == true)
+                        {
+                            // hitbox, just above the metasprite definition
+
+                            str = each_meta.ToString("X2");
+                            sw.Write("Meta_" + str + "_HB:\r\n");
+
+                            str = ".byte $";
+                            cast_8bit = (byte)MetaspriteArray[each_meta].hitbox_x;
+                            str += cast_8bit.ToString("X2");
+                            str += ", $";
+                            cast_8bit = (byte)MetaspriteArray[each_meta].hitbox_y;
+                            str += cast_8bit.ToString("X2");
+                            sw.Write(str + " ; hitbox x,y\r\n");
+
+                            int width = MetaspriteArray[each_meta].hitbox_x2 - MetaspriteArray[each_meta].hitbox_x;
+                            if (width < 1) width = 1;
+                            int height = MetaspriteArray[each_meta].hitbox_y2 - MetaspriteArray[each_meta].hitbox_y;
+                            if (height < 1) height = 1;
+                            str = ".byte $";
+                            cast_8bit = (byte)width;
+                            str += cast_8bit.ToString("X2");
+                            str += ", $";
+                            cast_8bit = (byte)height;
+                            str += cast_8bit.ToString("X2");
+                            sw.Write(str + " ; hitbox w,h\r\n");
+                        }
+                        
+
                         str = each_meta.ToString("X2");
                         sw.Write("Meta_" + str + ":\r\n");
 
                         int max_spr = MetaspriteArray[each_meta].sprite_count;
+
+                        if(includeFlipDataToolStripMenuItem.Checked == true)
+                        {
+                            calc_flip_adj(each_meta); // might need an adjustment ->hb_x_adj, y
+
+                            // flip values, x and y
+
+                            int max_x = -64;
+                            int max_y = -64;
+                            int min_x = 64;
+                            int min_y = 64;
+                            for (int i = 0; i < max_spr; i++)
+                            {
+                                if (MetaspriteArray[each_meta].rel_x[i] > max_x)
+                                {
+                                    max_x = MetaspriteArray[each_meta].rel_x[i];
+                                }
+                                if (MetaspriteArray[each_meta].rel_y[i] > max_y)
+                                {
+                                    max_y = MetaspriteArray[each_meta].rel_y[i];
+                                }
+                                if (MetaspriteArray[each_meta].rel_x[i] < min_x)
+                                {
+                                    min_x = MetaspriteArray[each_meta].rel_x[i];
+                                }
+                                if (MetaspriteArray[each_meta].rel_y[i] < min_y)
+                                {
+                                    min_y = MetaspriteArray[each_meta].rel_y[i];
+                                }
+                            }
+                            int flip_x = max_x + min_x;
+                            int flip_y = max_y + min_y;
+                            flip_x += hb_x_adj; // adjust, based on hitbox
+                            flip_y += hb_y_adj; // ...
+                            str = ".byte $";
+                            cast_8bit = (byte)flip_x;
+                            str += cast_8bit.ToString("X2");
+                            str += ", $";
+                            cast_8bit = (byte)flip_y;
+                            str += cast_8bit.ToString("X2");
+                            sw.Write(str + " ; flip x,y\r\n");
+                        }
+
+
+                        //int max_spr = MetaspriteArray[each_meta].sprite_count;
                         for (int i = 0; i < max_spr; i++)
                         {
                             sw.Write(".byte $");
@@ -590,6 +802,98 @@ namespace SNSPED
                     sw.Close();
                 }
             }
+        }
+
+
+        public void calc_flip_adj(int which_meta)
+        {
+            if (MetaspriteArray[which_meta].sprite_count < 1) // error handle
+            {
+                hb_x_adj = 0;
+                hb_y_adj = 0;
+                return;
+            }
+            
+            int small_size = 7;
+            int large_size = 15;
+
+            switch (spr_size_mode)
+            {
+                default:
+                case SIZES_8_16:
+                    small_size = 7;
+                    large_size = 15;
+                    break;
+                case SIZES_8_32:
+                    small_size = 7;
+                    large_size = 31;
+                    break;
+                case SIZES_8_64:
+                    small_size = 7;
+                    large_size = 63;
+                    break;
+                case SIZES_16_32:
+                    small_size = 15;
+                    large_size = 31;
+                    break;
+                case SIZES_16_64:
+                    small_size = 15;
+                    large_size = 63;
+                    break;
+                case SIZES_32_64:
+                    small_size = 31;
+                    large_size = 63;
+                    break;
+            }
+
+            int least_x = 64;
+            int least_y = 64;
+            int most_x = -64;
+            int most_y = -64;
+
+            for (int i = 0; i < MetaspriteArray[which_meta].sprite_count; i++)
+            {
+                if (MetaspriteArray[which_meta].rel_x[i] < least_x)
+                {
+                    least_x = MetaspriteArray[which_meta].rel_x[i];
+                }
+                if (MetaspriteArray[which_meta].rel_y[i] < least_y)
+                {
+                    least_y = MetaspriteArray[which_meta].rel_y[i];
+                }
+                int rt_x = MetaspriteArray[which_meta].rel_x[i];
+                int bt_y = MetaspriteArray[which_meta].rel_y[i];
+                if (MetaspriteArray[which_meta].size[i] == 0) // small
+                {
+                    rt_x += small_size;
+                    bt_y += small_size;
+                }
+                else // large
+                {
+                    rt_x += large_size;
+                    bt_y += large_size;
+                }
+                if (rt_x > most_x)
+                {
+                    most_x = rt_x;
+                }
+                if (bt_y > most_y)
+                {
+                    most_y = bt_y;
+                }
+            }
+
+            //how far off are we from the expected hitbox?
+            //hb_x_adj hb_y_adj
+
+            int delta1 = MetaspriteArray[which_meta].hitbox_x - least_x;
+            int delta2 = MetaspriteArray[which_meta].hitbox_x2 - most_x;
+            hb_x_adj = delta1 + delta2;
+
+            delta1 = MetaspriteArray[which_meta].hitbox_y - least_y;
+            delta2 = MetaspriteArray[which_meta].hitbox_y2 - most_y;
+            hb_y_adj = delta1 + delta2;
+            //hb_x_adj and hb_y_adj are globals
         }
 
         private void saveCurrentASMToolStripMenuItem_Click(object sender, EventArgs e)
@@ -641,10 +945,85 @@ namespace SNSPED
                             break;
                     }
 
+                    if(includeToolStripMenuItem.Checked == true) // optional hitbox
+                    {
+                        // hitbox, just above the metasprite definition
+
+                        str = selected_meta.ToString("X2");
+                        sw.Write("Meta_" + str + "_HB:\r\n");
+
+                        str = ".byte $";
+                        cast_8bit = (byte)MetaspriteArray[selected_meta].hitbox_x;
+                        str += cast_8bit.ToString("X2");
+                        str += ", $";
+                        cast_8bit = (byte)MetaspriteArray[selected_meta].hitbox_y;
+                        str += cast_8bit.ToString("X2");
+                        sw.Write(str + " ; hitbox x,y\r\n");
+
+                        int width = MetaspriteArray[selected_meta].hitbox_x2 - MetaspriteArray[selected_meta].hitbox_x;
+                        if (width < 1) width = 1;
+                        int height = MetaspriteArray[selected_meta].hitbox_y2 - MetaspriteArray[selected_meta].hitbox_y;
+                        if (height < 1) height = 1;
+                        str = ".byte $";
+                        cast_8bit = (byte)width;
+                        str += cast_8bit.ToString("X2");
+                        str += ", $";
+                        cast_8bit = (byte)height;
+                        str += cast_8bit.ToString("X2");
+                        sw.Write(str + " ; hitbox w,h\r\n");
+                    }
+                    
+
                     str = selected_meta.ToString("X2");
                     sw.Write("Meta_" + str + ":\r\n");
 
                     int max_spr = MetaspriteArray[selected_meta].sprite_count;
+
+                    if (includeFlipDataToolStripMenuItem.Checked == true)
+                    {
+                        calc_flip_adj(selected_meta); // might need an adjustment ->hb_x_adj, y
+
+                        // flip values, x and y
+
+                        int max_x = -64;
+                        int max_y = -64;
+                        int min_x = 64;
+                        int min_y = 64;
+                        for (int i = 0; i < max_spr; i++)
+                        {
+                            if (MetaspriteArray[selected_meta].rel_x[i] > max_x)
+                            {
+                                max_x = MetaspriteArray[selected_meta].rel_x[i];
+                            }
+                            if (MetaspriteArray[selected_meta].rel_y[i] > max_y)
+                            {
+                                max_y = MetaspriteArray[selected_meta].rel_y[i];
+                            }
+                            if (MetaspriteArray[selected_meta].rel_x[i] < min_x)
+                            {
+                                min_x = MetaspriteArray[selected_meta].rel_x[i];
+                            }
+                            if (MetaspriteArray[selected_meta].rel_y[i] < min_y)
+                            {
+                                min_y = MetaspriteArray[selected_meta].rel_y[i];
+                            }
+                        }
+                        int flip_x = max_x + min_x;
+                        int flip_y = max_y + min_y;
+                        flip_x += hb_x_adj; // adjust, based on hitbox
+                        flip_y += hb_y_adj; // ...
+                        str = ".byte $";
+                        cast_8bit = (byte)flip_x;
+                        str += cast_8bit.ToString("X2");
+                        str += ", $";
+                        cast_8bit = (byte)flip_y;
+                        str += cast_8bit.ToString("X2");
+                        sw.Write(str + " ; flip x,y\r\n");
+
+                    }
+
+
+                    //int max_spr = MetaspriteArray[selected_meta].sprite_count;
                     for (int i = 0; i < max_spr; i++)
                     {
                         sw.Write(".byte $");
@@ -701,14 +1080,19 @@ namespace SNSPED
                     MetaspriteArray[i].size[j] = 0;
                 }
                 MetaspriteArray[i].sprite_count = 0;
-                MetaspriteArray[i].priority = 0;
+                MetaspriteArray[i].priority = 2; // default is 2
                 MetaspriteArray[i].name = "Metasprite " + i.ToString();
                 listBox1.Items[i] = MetaspriteArray[i].name;
+                MetaspriteArray[i].hitbox_x = 0;
+                MetaspriteArray[i].hitbox_y = 0;
+                MetaspriteArray[i].hitbox_x2 = 15;
+                MetaspriteArray[i].hitbox_y2 = 15;
             }
 
             listBox1.SelectedIndex = 0;
             textBox6.Text = MetaspriteArray[0].name;
             update_metatile_image();
+            label21.Text = "0";
         }
 
 

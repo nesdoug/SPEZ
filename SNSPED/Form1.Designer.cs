@@ -41,8 +41,10 @@
             this.metaspriteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.loadBinToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveBinToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.saveASMToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveCurrentASMToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.saveASMToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.includeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.includeFlipDataToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem3 = new System.Windows.Forms.ToolStripMenuItem();
             this.clearAllMetaspritesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.tilesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -123,7 +125,6 @@
             this.label16 = new System.Windows.Forms.Label();
             this.checkBox4 = new System.Windows.Forms.CheckBox();
             this.label17 = new System.Windows.Forms.Label();
-            this.label18 = new System.Windows.Forms.Label();
             this.textBox7 = new System.Windows.Forms.TextBox();
             this.colorDialog1 = new System.Windows.Forms.ColorDialog();
             this.button12 = new System.Windows.Forms.Button();
@@ -135,6 +136,11 @@
             this.trackBar2 = new System.Windows.Forms.TrackBar();
             this.trackBar3 = new System.Windows.Forms.TrackBar();
             this.checkBox5 = new System.Windows.Forms.CheckBox();
+            this.checkBox7 = new System.Windows.Forms.CheckBox();
+            this.label21 = new System.Windows.Forms.Label();
+            this.label22 = new System.Windows.Forms.Label();
+            this.button14 = new System.Windows.Forms.Button();
+            this.label18 = new System.Windows.Forms.Label();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
@@ -227,8 +233,10 @@
             this.metaspriteToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.loadBinToolStripMenuItem,
             this.saveBinToolStripMenuItem,
-            this.saveASMToolStripMenuItem,
             this.saveCurrentASMToolStripMenuItem,
+            this.saveASMToolStripMenuItem,
+            this.includeToolStripMenuItem,
+            this.includeFlipDataToolStripMenuItem,
             this.toolStripMenuItem3,
             this.clearAllMetaspritesToolStripMenuItem});
             this.metaspriteToolStripMenuItem.Name = "metaspriteToolStripMenuItem";
@@ -238,41 +246,59 @@
             // loadBinToolStripMenuItem
             // 
             this.loadBinToolStripMenuItem.Name = "loadBinToolStripMenuItem";
-            this.loadBinToolStripMenuItem.Size = new System.Drawing.Size(182, 22);
+            this.loadBinToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
             this.loadBinToolStripMenuItem.Text = "Load 1 Meta as bin";
             this.loadBinToolStripMenuItem.Click += new System.EventHandler(this.loadBinToolStripMenuItem_Click);
             // 
             // saveBinToolStripMenuItem
             // 
             this.saveBinToolStripMenuItem.Name = "saveBinToolStripMenuItem";
-            this.saveBinToolStripMenuItem.Size = new System.Drawing.Size(182, 22);
+            this.saveBinToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
             this.saveBinToolStripMenuItem.Text = "Save 1 Meta as bin";
             this.saveBinToolStripMenuItem.Click += new System.EventHandler(this.saveBinToolStripMenuItem_Click);
-            // 
-            // saveASMToolStripMenuItem
-            // 
-            this.saveASMToolStripMenuItem.Name = "saveASMToolStripMenuItem";
-            this.saveASMToolStripMenuItem.Size = new System.Drawing.Size(182, 22);
-            this.saveASMToolStripMenuItem.Text = "Save All ASM";
-            this.saveASMToolStripMenuItem.Click += new System.EventHandler(this.saveASMToolStripMenuItem_Click);
             // 
             // saveCurrentASMToolStripMenuItem
             // 
             this.saveCurrentASMToolStripMenuItem.Name = "saveCurrentASMToolStripMenuItem";
-            this.saveCurrentASMToolStripMenuItem.Size = new System.Drawing.Size(182, 22);
-            this.saveCurrentASMToolStripMenuItem.Text = "Save Current ASM";
+            this.saveCurrentASMToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
+            this.saveCurrentASMToolStripMenuItem.Text = "Save 1 Meta as ASM";
             this.saveCurrentASMToolStripMenuItem.Click += new System.EventHandler(this.saveCurrentASMToolStripMenuItem_Click);
+            // 
+            // saveASMToolStripMenuItem
+            // 
+            this.saveASMToolStripMenuItem.Name = "saveASMToolStripMenuItem";
+            this.saveASMToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
+            this.saveASMToolStripMenuItem.Text = "Save All Meta as ASM";
+            this.saveASMToolStripMenuItem.Click += new System.EventHandler(this.saveASMToolStripMenuItem_Click);
+            // 
+            // includeToolStripMenuItem
+            // 
+            this.includeToolStripMenuItem.Checked = true;
+            this.includeToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.includeToolStripMenuItem.Name = "includeToolStripMenuItem";
+            this.includeToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
+            this.includeToolStripMenuItem.Text = "Include Hitbox Data";
+            this.includeToolStripMenuItem.Click += new System.EventHandler(this.includeToolStripMenuItem_Click);
+            // 
+            // includeFlipDataToolStripMenuItem
+            // 
+            this.includeFlipDataToolStripMenuItem.Checked = true;
+            this.includeFlipDataToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.includeFlipDataToolStripMenuItem.Name = "includeFlipDataToolStripMenuItem";
+            this.includeFlipDataToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
+            this.includeFlipDataToolStripMenuItem.Text = "Include Flip Data";
+            this.includeFlipDataToolStripMenuItem.Click += new System.EventHandler(this.includeFlipDataToolStripMenuItem_Click);
             // 
             // toolStripMenuItem3
             // 
             this.toolStripMenuItem3.Name = "toolStripMenuItem3";
-            this.toolStripMenuItem3.Size = new System.Drawing.Size(182, 22);
+            this.toolStripMenuItem3.Size = new System.Drawing.Size(187, 22);
             this.toolStripMenuItem3.Text = " ";
             // 
             // clearAllMetaspritesToolStripMenuItem
             // 
             this.clearAllMetaspritesToolStripMenuItem.Name = "clearAllMetaspritesToolStripMenuItem";
-            this.clearAllMetaspritesToolStripMenuItem.Size = new System.Drawing.Size(182, 22);
+            this.clearAllMetaspritesToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
             this.clearAllMetaspritesToolStripMenuItem.Text = "Clear All Metasprites";
             this.clearAllMetaspritesToolStripMenuItem.Click += new System.EventHandler(this.clearAllMetaspritesToolStripMenuItem_Click);
             // 
@@ -653,7 +679,7 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(478, 588);
+            this.label4.Location = new System.Drawing.Point(482, 588);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(29, 13);
             this.label4.TabIndex = 11;
@@ -776,9 +802,9 @@
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(476, 610);
+            this.button1.Location = new System.Drawing.Point(477, 610);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(90, 23);
+            this.button1.Size = new System.Drawing.Size(89, 23);
             this.button1.TabIndex = 25;
             this.button1.Text = "Color Picker";
             this.button1.UseVisualStyleBackColor = true;
@@ -860,7 +886,7 @@
             // label14
             // 
             this.label14.AutoSize = true;
-            this.label14.Location = new System.Drawing.Point(348, 526);
+            this.label14.Location = new System.Drawing.Point(348, 506);
             this.label14.Name = "label14";
             this.label14.Size = new System.Drawing.Size(45, 13);
             this.label14.TabIndex = 34;
@@ -868,7 +894,7 @@
             // 
             // button8
             // 
-            this.button8.Location = new System.Drawing.Point(399, 521);
+            this.button8.Location = new System.Drawing.Point(399, 501);
             this.button8.Name = "button8";
             this.button8.Size = new System.Drawing.Size(26, 23);
             this.button8.TabIndex = 35;
@@ -878,7 +904,7 @@
             // 
             // button9
             // 
-            this.button9.Location = new System.Drawing.Point(441, 521);
+            this.button9.Location = new System.Drawing.Point(441, 501);
             this.button9.Name = "button9";
             this.button9.Size = new System.Drawing.Size(26, 23);
             this.button9.TabIndex = 36;
@@ -888,7 +914,7 @@
             // 
             // button10
             // 
-            this.button10.Location = new System.Drawing.Point(351, 555);
+            this.button10.Location = new System.Drawing.Point(351, 535);
             this.button10.Name = "button10";
             this.button10.Size = new System.Drawing.Size(116, 23);
             this.button10.TabIndex = 37;
@@ -898,7 +924,7 @@
             // 
             // button11
             // 
-            this.button11.Location = new System.Drawing.Point(351, 588);
+            this.button11.Location = new System.Drawing.Point(351, 568);
             this.button11.Name = "button11";
             this.button11.Size = new System.Drawing.Size(116, 23);
             this.button11.TabIndex = 38;
@@ -1042,7 +1068,7 @@
             this.listBox2.Location = new System.Drawing.Point(12, 454);
             this.listBox2.Name = "listBox2";
             this.listBox2.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
-            this.listBox2.Size = new System.Drawing.Size(320, 160);
+            this.listBox2.Size = new System.Drawing.Size(320, 147);
             this.listBox2.TabIndex = 42;
             this.listBox2.Click += new System.EventHandler(this.listBox2_Click);
             // 
@@ -1058,8 +1084,6 @@
             // checkBox4
             // 
             this.checkBox4.AutoSize = true;
-            this.checkBox4.Checked = true;
-            this.checkBox4.CheckState = System.Windows.Forms.CheckState.Checked;
             this.checkBox4.Location = new System.Drawing.Point(250, 380);
             this.checkBox4.Name = "checkBox4";
             this.checkBox4.Size = new System.Drawing.Size(82, 17);
@@ -1076,15 +1100,6 @@
             this.label17.Size = new System.Drawing.Size(75, 13);
             this.label17.TabIndex = 45;
             this.label17.Text = "Priority all (0-3)";
-            // 
-            // label18
-            // 
-            this.label18.AutoSize = true;
-            this.label18.Location = new System.Drawing.Point(348, 495);
-            this.label18.Name = "label18";
-            this.label18.Size = new System.Drawing.Size(50, 13);
-            this.label18.TabIndex = 46;
-            this.label18.Text = "(optional)";
             // 
             // textBox7
             // 
@@ -1121,7 +1136,7 @@
             this.checkBox6.AutoSize = true;
             this.checkBox6.Checked = true;
             this.checkBox6.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBox6.Location = new System.Drawing.Point(348, 454);
+            this.checkBox6.Location = new System.Drawing.Point(351, 453);
             this.checkBox6.Name = "checkBox6";
             this.checkBox6.Size = new System.Drawing.Size(142, 17);
             this.checkBox6.TabIndex = 52;
@@ -1197,11 +1212,64 @@
             this.checkBox5.UseVisualStyleBackColor = true;
             this.checkBox5.Click += new System.EventHandler(this.checkBox5_Click);
             // 
+            // checkBox7
+            // 
+            this.checkBox7.AutoSize = true;
+            this.checkBox7.Location = new System.Drawing.Point(16, 621);
+            this.checkBox7.Name = "checkBox7";
+            this.checkBox7.Size = new System.Drawing.Size(77, 17);
+            this.checkBox7.TabIndex = 59;
+            this.checkBox7.Text = "Edit Hitbox";
+            this.checkBox7.UseVisualStyleBackColor = true;
+            this.checkBox7.Click += new System.EventHandler(this.checkBox7_Click);
+            // 
+            // label21
+            // 
+            this.label21.AutoSize = true;
+            this.label21.Location = new System.Drawing.Point(106, 438);
+            this.label21.Name = "label21";
+            this.label21.Size = new System.Drawing.Size(13, 13);
+            this.label21.TabIndex = 60;
+            this.label21.Text = "0";
+            // 
+            // label22
+            // 
+            this.label22.AutoSize = true;
+            this.label22.Location = new System.Drawing.Point(188, 623);
+            this.label22.Name = "label22";
+            this.label22.Size = new System.Drawing.Size(97, 13);
+            this.label22.TabIndex = 61;
+            this.label22.Text = "Hitbox (0,0) (15,15)";
+            // 
+            // button14
+            // 
+            this.button14.Location = new System.Drawing.Point(110, 618);
+            this.button14.Name = "button14";
+            this.button14.Size = new System.Drawing.Size(61, 23);
+            this.button14.TabIndex = 62;
+            this.button14.Text = "Auto HB";
+            this.button14.UseVisualStyleBackColor = true;
+            this.button14.Click += new System.EventHandler(this.button14_Click);
+            // 
+            // label18
+            // 
+            this.label18.AutoSize = true;
+            this.label18.Location = new System.Drawing.Point(302, 623);
+            this.label18.Name = "label18";
+            this.label18.Size = new System.Drawing.Size(79, 13);
+            this.label18.TabIndex = 63;
+            this.label18.Text = "Flip Adjust (0,0)";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(804, 652);
+            this.Controls.Add(this.label18);
+            this.Controls.Add(this.button14);
+            this.Controls.Add(this.label22);
+            this.Controls.Add(this.label21);
+            this.Controls.Add(this.checkBox7);
             this.Controls.Add(this.checkBox5);
             this.Controls.Add(this.trackBar3);
             this.Controls.Add(this.trackBar2);
@@ -1212,7 +1280,6 @@
             this.Controls.Add(this.label19);
             this.Controls.Add(this.button12);
             this.Controls.Add(this.textBox7);
-            this.Controls.Add(this.label18);
             this.Controls.Add(this.label17);
             this.Controls.Add(this.checkBox4);
             this.Controls.Add(this.label16);
@@ -1261,7 +1328,7 @@
             this.MainMenuStrip = this.menuStrip1;
             this.MaximizeBox = false;
             this.Name = "Form1";
-            this.Text = "SPEZ - SNES Sprite Editor ver 2.4";
+            this.Text = "SPEZ - SNES Sprite Editor ver 3.0.4";
             this.Load += new System.EventHandler(this.Form1_Load);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
@@ -1357,7 +1424,6 @@
         private System.Windows.Forms.Label label16;
         private System.Windows.Forms.CheckBox checkBox4;
         private System.Windows.Forms.Label label17;
-        private System.Windows.Forms.Label label18;
         private System.Windows.Forms.TextBox textBox7;
         private System.Windows.Forms.ColorDialog colorDialog1;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem3;
@@ -1384,6 +1450,13 @@
         private System.Windows.Forms.ToolStripMenuItem smartImportOptionsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem1;
         private System.Windows.Forms.CheckBox checkBox5;
+        private System.Windows.Forms.CheckBox checkBox7;
+        private System.Windows.Forms.ToolStripMenuItem includeToolStripMenuItem;
+        private System.Windows.Forms.Label label21;
+        private System.Windows.Forms.Label label22;
+        private System.Windows.Forms.ToolStripMenuItem includeFlipDataToolStripMenuItem;
+        private System.Windows.Forms.Button button14;
+        private System.Windows.Forms.Label label18;
     }
 }
 

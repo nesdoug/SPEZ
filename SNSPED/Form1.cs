@@ -53,6 +53,10 @@ namespace SNSPED
                 MetaspriteArray[i] = new Metasprites();
                 MetaspriteArray[i].name = "Metasprite " + i.ToString();
                 MetaspriteArray[i].priority = 2;
+                MetaspriteArray[i].hitbox_x = 0;
+                MetaspriteArray[i].hitbox_y = 0;
+                MetaspriteArray[i].hitbox_x2 = 15;
+                MetaspriteArray[i].hitbox_y2 = 15;
             }
             
             listBox1.SelectedIndex = 0;
@@ -62,6 +66,7 @@ namespace SNSPED
             update_palette();
             update_tile_image();
             update_metatile_image();
+            rebuild_pal_boxes();
             label5.Focus();
             this.ActiveControl = label5;
         }
@@ -132,6 +137,10 @@ namespace SNSPED
         public static int BE_y2 = 1;
         public static int BE_x_cur, BE_y_cur; // do we need to redraw the tileset box?
 
+        public static bool edit_hitbox = false;
+        public static int which_hb_click;
+        public static int hb_x_adj, hb_y_adj;
+
 
         public readonly int[,] BAYER_MATRIX =
         {
@@ -146,6 +155,20 @@ namespace SNSPED
         }; // 1/64 times this
 
 
+
+        public void update_hitbox_text()
+        {
+            string str = "Hitbox (";
+            str += MetaspriteArray[selected_meta].hitbox_x.ToString();
+            str += ",";
+            str += MetaspriteArray[selected_meta].hitbox_y.ToString();
+            str += ") (";
+            str += MetaspriteArray[selected_meta].hitbox_x2.ToString();
+            str += ",";
+            str += MetaspriteArray[selected_meta].hitbox_y2.ToString();
+            str += ")";
+            label22.Text = str;
+        }
 
         public void Checkpoint()
         {
@@ -357,6 +380,8 @@ namespace SNSPED
             int pixel_x = -1;
             int pixel_y = -1;
 
+            if (edit_hitbox == true) return;
+
             if (mouseEventArgs.Button == MouseButtons.Right)
             {
                 
@@ -379,6 +404,8 @@ namespace SNSPED
             var mouseEventArgs = e as MouseEventArgs;
             int pixel_x = -1;
             int pixel_y = -1;
+
+            if (edit_hitbox == true) return;
 
             if (mouseEventArgs.Button == MouseButtons.Right)
             {
@@ -473,6 +500,7 @@ namespace SNSPED
 
                             update_metatile_image();
                             rebuild_spr_list();
+                            
                         }
                     }
                 }
@@ -493,13 +521,8 @@ namespace SNSPED
             // left click = drop a tile, right = shift selected tile
             // click the tile in the tile editor to change which selected
             int meta_x, meta_y, meta_x2, meta_y2, offset;
-            
-            if (MetaspriteArray[selected_meta].sprite_count >= MAX_SPRITE) return;
-
-            int starting_index = MetaspriteArray[selected_meta].sprite_count;
 
             var mouseEventArgs = e as MouseEventArgs;
-            if (mouseEventArgs.Button == MouseButtons.Right) return;
 
             if (mouseEventArgs != null)
             {
@@ -514,6 +537,62 @@ namespace SNSPED
             if (meta_y > 256) meta_y = 256;
             meta_x2 = ((meta_x / 2) & 0xf8) - 64; // -64 to 64
             meta_y2 = ((meta_y / 2) & 0xf8) - 64; // -64 to 64
+
+
+            if (edit_hitbox == true) // edit the hitbox only
+            {
+                meta_x2 = (meta_x / 2) - 64;
+                meta_y2 = (meta_y / 2) - 64;
+
+                if (mouseEventArgs.Button == MouseButtons.Left)
+                {
+                    MetaspriteArray[selected_meta].hitbox_x = meta_x2;
+                    MetaspriteArray[selected_meta].hitbox_y = meta_y2;
+                    if (meta_x2 >= MetaspriteArray[selected_meta].hitbox_x2)
+                    {
+                        MetaspriteArray[selected_meta].hitbox_x2 = meta_x2 + 1;
+                    }
+                    if (meta_y2 >= MetaspriteArray[selected_meta].hitbox_y2)
+                    {
+                        MetaspriteArray[selected_meta].hitbox_y2 = meta_y2 + 1;
+                    }
+                    which_hb_click = 0;
+                }
+
+                if (mouseEventArgs.Button == MouseButtons.Right)
+                {
+                    if(meta_x2 <= MetaspriteArray[selected_meta].hitbox_x)
+                    {
+                        meta_x2 = MetaspriteArray[selected_meta].hitbox_x + 1;
+                    }
+                    if (meta_y2 <= MetaspriteArray[selected_meta].hitbox_y)
+                    {
+                        meta_y2 = MetaspriteArray[selected_meta].hitbox_y + 1;
+                    }
+                    MetaspriteArray[selected_meta].hitbox_x2 = meta_x2;
+                    MetaspriteArray[selected_meta].hitbox_y2 = meta_y2;
+                    which_hb_click = 1;
+                }
+
+                //update_hitbox_text();
+                update_metatile_image();
+                return;
+            }
+
+
+            
+            if (MetaspriteArray[selected_meta].sprite_count >= MAX_SPRITE) return;
+
+            int starting_index = MetaspriteArray[selected_meta].sprite_count;
+
+
+            if (mouseEventArgs.Button == MouseButtons.Right)
+            {
+                //rebuild_spr_list();
+                return;
+            }
+
+            
 
 
             // if "MANY", assume to use the large tile, unless small fits
@@ -577,7 +656,8 @@ namespace SNSPED
             {
                 for (int x1 = 0; x1 < x_loop; x1++)
                 {
-                    
+                    if ((meta_x2 + (x1 * large_size)) > 120) continue; // out of range, skip
+                    if ((meta_y2 + (y1 * large_size)) > 120) continue;
                     // add to the data
                     MetaspriteArray[selected_meta].rel_x[offset] = meta_x2 + (x1 * large_size);
                     MetaspriteArray[selected_meta].rel_y[offset] = meta_y2 + (y1 * large_size);
@@ -1022,6 +1102,32 @@ namespace SNSPED
 
         private void button4_Click(object sender, EventArgs e)
         { // nudge left
+
+            if (edit_hitbox == true)
+            {
+                if (which_hb_click == 0) // top left
+                {
+                    MetaspriteArray[selected_meta].hitbox_x -= 1;
+                    if (MetaspriteArray[selected_meta].hitbox_x < -64)
+                    {
+                        MetaspriteArray[selected_meta].hitbox_x = -64;
+                    }
+                }
+                else // bottom right
+                {
+                    MetaspriteArray[selected_meta].hitbox_x2 -= 1;
+                    if (MetaspriteArray[selected_meta].hitbox_x2 <= MetaspriteArray[selected_meta].hitbox_x)
+                    {
+                        MetaspriteArray[selected_meta].hitbox_x2 = MetaspriteArray[selected_meta].hitbox_x + 1;
+                    }
+                }
+                //update_hitbox_text();
+                update_metatile_image();
+                label5.Focus();
+                return;
+            }
+
+
             if (MetaspriteArray[selected_meta].sprite_count == 0) return;
             if (listBox2.SelectedItems.Count < 1) return;
             int temp_x;
@@ -1063,6 +1169,35 @@ namespace SNSPED
 
         private void button5_Click(object sender, EventArgs e)
         { // nudge right
+            if (edit_hitbox == true)
+            {
+                if (which_hb_click == 0) // top left
+                {
+                    MetaspriteArray[selected_meta].hitbox_x += 1;
+                    if (MetaspriteArray[selected_meta].hitbox_x > 64)
+                    {
+                        MetaspriteArray[selected_meta].hitbox_x = 64;
+                    }
+                    if (MetaspriteArray[selected_meta].hitbox_x2 <= MetaspriteArray[selected_meta].hitbox_x)
+                    {
+                        MetaspriteArray[selected_meta].hitbox_x2 = MetaspriteArray[selected_meta].hitbox_x + 1;
+                    }
+                }
+                else // bottom right
+                {
+                    MetaspriteArray[selected_meta].hitbox_x2 += 1;
+                    if (MetaspriteArray[selected_meta].hitbox_x2 > 65)
+                    {
+                        MetaspriteArray[selected_meta].hitbox_x2 = 65;
+                    }
+                }
+                //update_hitbox_text();
+                update_metatile_image();
+                label5.Focus();
+                return;
+            }
+
+
             if (MetaspriteArray[selected_meta].sprite_count == 0) return;
             if (listBox2.SelectedItems.Count < 1) return;
             int temp_x;
@@ -1106,6 +1241,31 @@ namespace SNSPED
 
         private void button6_Click(object sender, EventArgs e)
         { // nudge up
+            if (edit_hitbox == true)
+            {
+                if (which_hb_click == 0) // top left
+                {
+                    MetaspriteArray[selected_meta].hitbox_y -= 1;
+                    if (MetaspriteArray[selected_meta].hitbox_y < -64)
+                    {
+                        MetaspriteArray[selected_meta].hitbox_y = -64;
+                    }
+                }
+                else // bottom right
+                {
+                    MetaspriteArray[selected_meta].hitbox_y2 -= 1;
+                    if (MetaspriteArray[selected_meta].hitbox_y2 <= MetaspriteArray[selected_meta].hitbox_y)
+                    {
+                        MetaspriteArray[selected_meta].hitbox_y2 = MetaspriteArray[selected_meta].hitbox_y + 1;
+                    }
+                }
+                //update_hitbox_text();
+                update_metatile_image();
+                label5.Focus();
+                return;
+            }
+
+
             if (MetaspriteArray[selected_meta].sprite_count == 0) return;
             if (listBox2.SelectedItems.Count < 1) return;
             int temp_y;
@@ -1148,6 +1308,35 @@ namespace SNSPED
 
         private void button7_Click(object sender, EventArgs e)
         { // nudge down
+            if (edit_hitbox == true)
+            {
+                if (which_hb_click == 0) // top left
+                {
+                    MetaspriteArray[selected_meta].hitbox_y += 1;
+                    if (MetaspriteArray[selected_meta].hitbox_y > 64)
+                    {
+                        MetaspriteArray[selected_meta].hitbox_y = 64;
+                    }
+                    if (MetaspriteArray[selected_meta].hitbox_y2 <= MetaspriteArray[selected_meta].hitbox_y)
+                    {
+                        MetaspriteArray[selected_meta].hitbox_y2 = MetaspriteArray[selected_meta].hitbox_y + 1;
+                    }
+                }
+                else // bottom right
+                {
+                    MetaspriteArray[selected_meta].hitbox_y2 += 1;
+                    if (MetaspriteArray[selected_meta].hitbox_y2 > 65)
+                    {
+                        MetaspriteArray[selected_meta].hitbox_y2 = 65;
+                    }
+                }
+                //update_hitbox_text();
+                update_metatile_image();
+                label5.Focus();
+                return;
+            }
+
+
             if (MetaspriteArray[selected_meta].sprite_count == 0) return;
             if (listBox2.SelectedItems.Count < 1) return;
             int temp_y;
@@ -1845,6 +2034,7 @@ namespace SNSPED
             listBox2.Refresh();
             selected_spr = 0;
             label19.Text = "00";
+            label21.Text = "0";
             update_metatile_image();
             label5.Focus();
         }
@@ -1946,8 +2136,9 @@ namespace SNSPED
             }
             else // count is zero
             {
-                textBox5.Text = "0";
+                textBox5.Text = "0"; // palette
             }
+            label21.Text = listBox2.Items.Count.ToString(); // how many sprites
         }
 
 
@@ -2174,6 +2365,14 @@ namespace SNSPED
 
         private void checkBox4_Click(object sender, EventArgs e)
         { // apply large or small
+            
+            if(BIG_EDIT_MODE == true)
+            {
+                checkBox4.Checked = false;
+                MessageBox.Show("In multi-tiles mode (MANY), select the number of tiles manually.");
+                return;
+            }
+            
             update_tile_image(); // white box might need redrawn
             label5.Focus();
         }
@@ -2575,6 +2774,7 @@ namespace SNSPED
             {
                 BIG_EDIT_MODE = true;
                 checkBox5.Text = "MANY";
+                checkBox4.Checked = false;
             }
             else
             {
@@ -2687,7 +2887,135 @@ namespace SNSPED
             }
         }
 
+        private void checkBox7_Click(object sender, EventArgs e)
+        {
+            // edit hitbox
+            edit_hitbox = checkBox7.Checked;
 
+            update_metatile_image();
+        }
+
+        private void includeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if(includeToolStripMenuItem.Checked == true)
+            {
+                includeToolStripMenuItem.Checked = false;
+            }
+            else
+            {
+                includeToolStripMenuItem.Checked = true;
+            }
+            metaspriteToolStripMenuItem.ShowDropDown(); // don't hide the menu strip on click
+            
+        }
+
+        private void includeFlipDataToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (includeFlipDataToolStripMenuItem.Checked == true)
+            {
+                includeFlipDataToolStripMenuItem.Checked = false;
+            }
+            else
+            {
+                includeFlipDataToolStripMenuItem.Checked = true;
+            }
+            metaspriteToolStripMenuItem.ShowDropDown(); // don't hide the menu strip on click
+        }
+
+        private void button14_Click(object sender, EventArgs e)
+        {
+            // auto hitbox generate from current
+
+            if (MetaspriteArray[selected_meta].sprite_count < 1)
+            {
+                // no sprites, just reset to default
+                MetaspriteArray[selected_meta].hitbox_x = 0;
+                MetaspriteArray[selected_meta].hitbox_x2 = 15;
+                MetaspriteArray[selected_meta].hitbox_y = 0;
+                MetaspriteArray[selected_meta].hitbox_y2 = 15;
+
+                update_metatile_image();
+                label5.Focus();
+                return;
+            }
+
+            int small_size = 7;
+            int large_size = 15;
+
+            switch (spr_size_mode)
+            {
+                default:
+                case SIZES_8_16:
+                    small_size = 7;
+                    large_size = 15;
+                    break;
+                case SIZES_8_32:
+                    small_size = 7;
+                    large_size = 31;
+                    break;
+                case SIZES_8_64:
+                    small_size = 7;
+                    large_size = 63;
+                    break;
+                case SIZES_16_32:
+                    small_size = 15;
+                    large_size = 31;
+                    break;
+                case SIZES_16_64:
+                    small_size = 15;
+                    large_size = 63;
+                    break;
+                case SIZES_32_64:
+                    small_size = 31;
+                    large_size = 63;
+                    break;
+            }
+
+            int least_x = 64;
+            int least_y = 64;
+            int most_x = -64;
+            int most_y = -64;
+
+            for (int i = 0; i < MetaspriteArray[selected_meta].sprite_count; i++)
+            {
+                if (MetaspriteArray[selected_meta].rel_x[i] < least_x)
+                {
+                    least_x = MetaspriteArray[selected_meta].rel_x[i];
+                }
+                if (MetaspriteArray[selected_meta].rel_y[i] < least_y)
+                {
+                    least_y = MetaspriteArray[selected_meta].rel_y[i];
+                }
+                int rt_x = MetaspriteArray[selected_meta].rel_x[i];
+                int bt_y = MetaspriteArray[selected_meta].rel_y[i];
+                if (MetaspriteArray[selected_meta].size[i] == 0) // small
+                {
+                    rt_x += small_size;
+                    bt_y += small_size;
+                }
+                else // large
+                {
+                    rt_x += large_size;
+                    bt_y += large_size;
+                }
+                if (rt_x > most_x)
+                {
+                    most_x = rt_x;
+                }
+                if (bt_y > most_y)
+                {
+                    most_y = bt_y;
+                }
+            }
+
+            MetaspriteArray[selected_meta].hitbox_x = least_x;
+            MetaspriteArray[selected_meta].hitbox_x2 = most_x;
+            MetaspriteArray[selected_meta].hitbox_y = least_y;
+            MetaspriteArray[selected_meta].hitbox_y2 = most_y;
+
+            update_metatile_image();
+            label5.Focus();
+        }
 
         private void pictureBox2_MouseMove(object sender, MouseEventArgs e)
         {
@@ -3606,15 +3934,122 @@ namespace SNSPED
             label5.Focus();
         }
 
-        
+
+        public void update_hitbox_text2()
+        {
+            // and calulate the least and most points in the cur metasprite
+
+            if (MetaspriteArray[selected_meta].sprite_count < 1)
+            {
+                label18.Text = "Flip Adjust (0,0)";
+                return;
+            }
+
+            calc_flip_adj(selected_meta);
+
+            /*
+            int small_size = 7;
+            int large_size = 15;
+
+            string str = "Flip Adjust (";
+
+            switch (spr_size_mode)
+            {
+                default:
+                case SIZES_8_16:
+                    small_size = 7;
+                    large_size = 15;
+                    break;
+                case SIZES_8_32:
+                    small_size = 7;
+                    large_size = 31;
+                    break;
+                case SIZES_8_64:
+                    small_size = 7;
+                    large_size = 63;
+                    break;
+                case SIZES_16_32:
+                    small_size = 15;
+                    large_size = 31;
+                    break;
+                case SIZES_16_64:
+                    small_size = 15;
+                    large_size = 63;
+                    break;
+                case SIZES_32_64:
+                    small_size = 31;
+                    large_size = 63;
+                    break;
+            }
+
+            int least_x = 64;
+            int least_y = 64;
+            int most_x = -64;
+            int most_y = -64;
+
+            for (int i = 0; i < MetaspriteArray[selected_meta].sprite_count; i++)
+            {
+                if(MetaspriteArray[selected_meta].rel_x[i] < least_x)
+                {
+                    least_x = MetaspriteArray[selected_meta].rel_x[i];
+                }
+                if (MetaspriteArray[selected_meta].rel_y[i] < least_y)
+                {
+                    least_y = MetaspriteArray[selected_meta].rel_y[i];
+                }
+                int rt_x = MetaspriteArray[selected_meta].rel_x[i];
+                int bt_y = MetaspriteArray[selected_meta].rel_y[i];
+                if (MetaspriteArray[selected_meta].size[i] == 0) // small
+                {
+                    rt_x += small_size;
+                    bt_y += small_size;
+                }
+                else // large
+                {
+                    rt_x += large_size;
+                    bt_y += large_size;
+                }
+                if (rt_x > most_x)
+                {
+                    most_x = rt_x;
+                }
+                if (bt_y > most_y)
+                {
+                    most_y = bt_y;
+                }
+            }
+
+            //how far off are we from the expected hitbox?
+            //hb_x_adj hb_y_adj
+
+            int delta1 = MetaspriteArray[selected_meta].hitbox_x - least_x;
+            int delta2 = MetaspriteArray[selected_meta].hitbox_x2 - most_x;
+            hb_x_adj = delta1 + delta2;
+
+            delta1 = MetaspriteArray[selected_meta].hitbox_y - least_y;
+            delta2 = MetaspriteArray[selected_meta].hitbox_y2 - most_y;
+            hb_y_adj = delta1 + delta2;
+            */
+
+            string str = "Flip Adjust (";
+            str += hb_x_adj.ToString();
+            str += ",";
+            str += hb_y_adj.ToString();
+            str += ")";
+            label18.Text = str;
+        }
+
 
         public void update_metatile_image()
         {
+            update_hitbox_text();
+            update_hitbox_text2();
+            
             Color Fred = Color.FromArgb(Palettes.pal_r[0], Palettes.pal_g[0], Palettes.pal_b[0]);
             // good old Fred
             int add_them = Palettes.pal_r[0] + Palettes.pal_g[0] + Palettes.pal_b[0];
             Color Fred2 = Color.White;
-            if (add_them > 384) Fred2 = Color.Black;
+            if (add_them > 479) Fred2 = Color.Black;
 
             for (int i = 0; i < 160; i++)
             {
@@ -3685,7 +4120,8 @@ namespace SNSPED
                     }
                 }
             }
-            
+
+
 
             //double the size
             using (Graphics g = Graphics.FromImage(temp_bmp2))
@@ -3728,7 +4164,41 @@ namespace SNSPED
                 }
             }
 
-            if(checkBox6.Checked == true) // highlight selected
+
+            if (edit_hitbox == true)
+            {
+                int xL = MetaspriteArray[selected_meta].hitbox_x * 2;
+                int xR = MetaspriteArray[selected_meta].hitbox_x2 * 2;
+                int yT = MetaspriteArray[selected_meta].hitbox_y * 2;
+                int yB = MetaspriteArray[selected_meta].hitbox_y2 * 2;
+                xL += 128;
+                xR += 130;
+                yT += 128;
+                yB += 130;
+
+                for (int x1 = xL; x1 <= xR; x1++)
+                {
+                    temp_bmp2.SetPixel(x1, yT, Fred2);
+                    temp_bmp2.SetPixel(x1, yT + 1, Fred2);
+                    temp_bmp2.SetPixel(x1, yB, Fred2);
+                    temp_bmp2.SetPixel(x1, yB + 1, Fred2);
+                }
+                for (int y1 = yT; y1 <= yB; y1++)
+                {
+                    temp_bmp2.SetPixel(xL, y1, Fred2);
+                    temp_bmp2.SetPixel(xL + 1, y1, Fred2);
+                    temp_bmp2.SetPixel(xR, y1, Fred2);
+                    temp_bmp2.SetPixel(xR + 1, y1, Fred2);
+                }
+                temp_bmp2.SetPixel(xR + 1, yB + 1, Fred2);
+
+                pictureBox1.Image = temp_bmp2;
+                pictureBox1.Refresh();
+                return;
+            }
+
+
+            if (checkBox6.Checked == true) // highlight selected
             {
                 int x_min, y_min, sp_size;
                 selected_spr = listBox2.SelectedIndex;
@@ -3792,7 +4262,7 @@ namespace SNSPED
                     //now draw the highlight box
                     if((y_min < 319) && (x_min < 319))
                     {
-                        for (int i = 0; i < sp_size; i++)
+                        for (int i = 0; i <= sp_size; i++)
                         {
                             if (x_min + i < 319)
                             {
@@ -3812,6 +4282,7 @@ namespace SNSPED
                                 }
                             }
                         }
+                        
                     }
                     
                 }
